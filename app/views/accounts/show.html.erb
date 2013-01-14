@@ -1,0 +1,35 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Name:</b>
+  <%= @account.name %>
+</p>
+
+<p>
+  <b>Number:</b>
+  <%= @account.number %>
+</p>
+
+<p>
+  <b>Description:</b>
+  <%= @account.description %>
+</p>
+
+<p>
+  <b>Opened on:</b>
+  <%= @account.opened_on %>
+</p>
+
+<p>
+  <b>Closed:</b>
+  <%= @account.closed %>
+</p>
+
+<p>
+  <b>Closed on:</b>
+  <%= @account.closed_on %>
+</p>
+
+
+<%= link_to 'Edit', edit_account_path(@account) %> |
+<%= link_to 'Back', accounts_path %>

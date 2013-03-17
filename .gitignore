@@ -14,3 +14,6 @@
 /log/*.log
 /tmp
 *~
+
+# Force local customization of datase settings from database.yml.sample
+config/database.yml

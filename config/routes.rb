@@ -1,5 +1,6 @@
 Howedoin::Application.routes.draw do
-  resources :accounts
+  resources :txns, defaults: {format: :json}
+  resources :accounts, defaults: {format: :json}
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

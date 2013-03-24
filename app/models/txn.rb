@@ -5,14 +5,21 @@ class Txn < ActiveRecord::Base
 
   validates :date, presence: true
 
-  before_save :set_entered
+  before_create :set_entered
 
   belongs_to :payee, primary_key: 'payee_id'
   has_many :entries, foreign_key: 'trans_id', autosave: true
 
+  def dup
+    new_txn = super
+    new_txn.entries = self.entries.map(&:dup)
+    new_txn.entered = Time.now
+    new_txn
+  end
+
   private
 
   def set_entered
-    self.entered = Time.now
+    self.entered = Time.now if new_record?
   end
 end

@@ -38,3 +38,7 @@ group :test, :development do
   # To use debugger
   gem 'debugger'
 end
+
+group :test do
+  gem "factory_girl_rails", "~> 4.0"
+end

@@ -22,6 +22,12 @@ class TxnsController < ApplicationController
   end
 
   def autofill
+    if params[:payee] && params[:date]
+      new_txn = Service::Autofill.from_last_payee_txn(params[:payee], params[:date])
+    end
+    respond_to do |format|
+      format.json { render json: new_txn.to_json(:include => :entries) }
+    end
   end
 
   # GET /txns/new

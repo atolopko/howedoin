@@ -1,6 +1,7 @@
 Howedoin::Application.routes.draw do
   resources :txns, defaults: {format: :json}
   resources :accounts, defaults: {format: :json}
+  match 'autofill' => 'txns#autofill'
 
   # The priority is based upon order of creation:
   # first created -> highest priority.

@@ -3,6 +3,8 @@ class Txn < ActiveRecord::Base
 
   attr_accessible :date, :payee
 
+  attr_accessor :num
+
   validates :date, presence: true
 
   before_create :set_entered

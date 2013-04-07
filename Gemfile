@@ -30,8 +30,15 @@ gem 'therubyracer', :require => 'v8'
 # Use unicorn as the app server
 # gem 'unicorn'
 
+gem 'chronic', '~> 0.9.1'
+
 # Deploy with Capistrano
 # gem 'capistrano'
+
+group :development do
+  gem "guard-rspec", "~> 2.5.2"
+  gem "rb-fsevent", "~> 0.9.3"
+end
 
 group :test, :development do
   gem "rspec-rails", "~> 2.0"

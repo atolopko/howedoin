@@ -36,7 +36,9 @@ gem 'chronic', '~> 0.9.1'
 # gem 'capistrano'
 
 group :development do
+  # for Guard automated testing (4 gems)
   gem "guard-rspec", "~> 2.5.2"
+  gem "growl"
   gem "rb-fsevent", "~> 0.9.3"
 end
 

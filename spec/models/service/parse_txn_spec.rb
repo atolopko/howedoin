@@ -43,7 +43,6 @@ module Service
     end
 
     describe "num" do
-
       ["#14",
        "2012-03-18 14",
        "14 2012-03-18",
@@ -53,6 +52,17 @@ module Service
         it "returns num from #{input}" do
           ParseTxn.new(input).txn.
             num.should == '14'
+        end
+      end
+    end
+
+    describe "#parse_entry" do
+      [["$1.01"],
+       ["$1.01", ":Account", "user"],
+       [":Account", "$1.01", "user"],
+       [":Account", "user", "$1.01"]].each do |input|
+        it "parses amount" do
+          ParseTxn::ParseEntry.new(input).entry.amount.should == Money.new(101).to_d
         end
       end
     end

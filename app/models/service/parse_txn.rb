@@ -15,22 +15,56 @@ module Service
       if tokens_list.present?
         rest = tokens_list.first
 
-        # "#num"
-        detected, rest = rest.partition do |tok|
-          m = /^#?(\d+)$/.match tok
+        # num
+        num, rest = self.class.extract(rest) do |tok| 
+          (/^#?(\d+)$/.match tok).try(:captures).try(:first)
         end
-        txn.num = (/^#?(\d+)$/.match detected.first).try(:captures).try(:first)
+        txn.num = num
 
         # date
-        detected, rest = rest.partition do |tok|
-          Chronic.parse(tok)
+        date, rest = self.class.extract(rest) do |tok| 
+          Chronic.parse(tok).try(:to_date)
         end
-        txn.date = Chronic.parse(detected.first).try(:to_date)
-
-        # :account, user, amount, memo, ::classif
+        txn.date = date
+        
+        # payee
+        txn.payee = Payee.where("name LIKE ?", rest.join('%')).first
+        
       end
-      
+
+      entries = 
+        tokens_list.drop(1).map do |entry_tokens|
+        ParseEntry.new(entry_tokens).entry
+      end
+
       txn
+    end
+
+    class ParseEntry
+      attr_reader :input, :entry
+
+      def initialize(tokens)
+        @input = tokens
+        @entry = parse_entry(tokens)
+      end
+
+      # :account, user, amount, memo, ::classif
+      def parse_entry(tokens)
+        entry = Entry.new
+        # account
+        account, rest = ParseTxn.extract(tokens) do |tok|
+          /^:(.+)/.match(tok).try(:captures).try(:first)
+        end
+        entry.account = Account.where('name LIKE ?', account).first
+
+        amount, rest = ParseTxn.extract(tokens) do |tok|
+          m = tok.to_money
+          m.zero? ? nil : m
+        end
+        entry.amount = amount
+
+        entry
+      end
     end
 
     def clean(tokens_list)
@@ -41,13 +75,11 @@ module Service
       input.split(/\n/).map { |l| l.split(/\s+/) }
     end
 
-    # def self.detect_and_clear(tokens)
-    #   extracted = nil
-    #   detected, rest = tokens.partition do |e|
-    #     v = yield(e)
-    #     e
-    #   end
-    #   extracted, rest
-    # end
+    def self.extract(tokens)
+      detected, rest = tokens.partition do |e|
+        yield(e)
+      end
+      [yield(detected.first), rest]
+    end
   end
 end

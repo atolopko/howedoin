@@ -82,6 +82,8 @@ GEM
       treetop (~> 1.4.8)
     method_source (0.8.1)
     mime-types (1.21)
+    money (5.1.1)
+      i18n (~> 0.6.0)
     multi_json (1.7.0)
     pg (0.14.1)
     polyglot (0.3.3)
@@ -166,6 +168,7 @@ DEPENDENCIES
   growl
   guard-rspec (~> 2.5.2)
   jquery-rails
+  money (~> 5.1.1)
   pg
   rails (= 3.2.12)
   rb-fsevent (~> 0.9.3)

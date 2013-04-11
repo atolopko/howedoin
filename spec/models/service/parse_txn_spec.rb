@@ -3,17 +3,21 @@ require 'spec_helper'
 module Service
   describe ParseTxn do
 
-    # describe "#detect_and_clear" do
-    #   let(:result) do
-    #     ParseTxn.detect_and_clear(%w{ a b c }) do |e|
-    #       e.upcase if e == 'b'
-    #     end
-    #   end
+    describe "#extract" do
+      it "works" do
+        result = ParseTxn.extract(%w{ a b c }) do |e|
+          e.upcase if e == 'b'
+        end
+        result.should == ['B', %w{ a c }]
+      end
 
-    #   it "works" do
-    #     result.
-    #   end
-    # end
+      it "handles undetected token" do
+        result = ParseTxn.extract(%w{ a b c }) do |e|
+          e.upcase if e == 'd'
+        end
+        result.should == [nil, %w{ a b c }]
+      end
+    end
 
     it "#txn should return a Txn" do
       ParseTxn.new("").txn.should be_a_kind_of Txn 
@@ -65,6 +69,23 @@ module Service
           ParseTxn::ParseEntry.new(input).entry.amount.should == Money.new(101).to_d
         end
       end
+      
+      it "parses missing amount as zero" do
+        ParseTxn::ParseEntry.new([":Account", "user"]).entry.amount.should == 0
+      end
+
+      it "parses zero amount as zero" do
+        ParseTxn::ParseEntry.new([":Account", "$0.00", "user"]).entry.amount.should == 0
+      end
+
+      [":Account", "$0.00", "usr1"].permutation.each do |input|
+        it "parser user" do
+          user1 = FactoryGirl.create(:user, nickname: "usr1", fullname: "User 1")
+          FactoryGirl.create(:user, nickname: "usr2", fullname: "User 2")
+          ParseTxn::ParseEntry.new(input).entry.user.should == user1
+        end
+      end
+
     end
   end
 end

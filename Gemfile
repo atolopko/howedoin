@@ -31,6 +31,7 @@ gem 'therubyracer', :require => 'v8'
 # gem 'unicorn'
 
 gem 'chronic', '~> 0.9.1'
+gem "money", "~> 5.1.1"
 
 # Deploy with Capistrano
 # gem 'capistrano'

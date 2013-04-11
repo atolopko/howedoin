@@ -57,11 +57,24 @@ module Service
         end
         entry.account = Account.where('name LIKE ?', account).first
 
+        # classification
+        # classification, rest = ParseTxn.extract(tokens) do |tok|
+        #   /^::(.+)/.match(tok).try(:captures).try(:first)
+        # end
+        # entry.account = Classification.where('name LIKE ?', account).first
+
+        # amount
         amount, rest = ParseTxn.extract(tokens) do |tok|
           m = tok.to_money
           m.zero? ? nil : m
         end
-        entry.amount = amount
+        entry.amount = amount || Money.new(0)
+
+        # user
+        user, rest = ParseTxn.extract(tokens) do |tok|
+          User.where(nickname: tok).first
+        end
+        entry.user = user
 
         entry
       end
@@ -79,7 +92,7 @@ module Service
       detected, rest = tokens.partition do |e|
         yield(e)
       end
-      [yield(detected.first), rest]
+      [detected.empty? ? nil : yield(detected.first), rest]
     end
   end
 end

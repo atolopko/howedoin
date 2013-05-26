@@ -5,36 +5,32 @@ module Service
     attr_reader :input, :txn
     
     def initialize(input)
-      @input = input
-      @txn = parse(clean(tokenize(input)))
+      @input = input || ""
+      @txn = parse
     end
     
-    def parse(tokens_list)
+    def parse
+      lines = @input.strip.split("\n")
+      parser = LineParser.new(lines.first)
+
       txn = Txn.new
-      
-      if tokens_list.present?
-        rest = tokens_list.first
 
-        # num
-        num, rest = self.class.extract(rest) do |tok| 
-          (/^#?(\d+)$/.match tok).try(:captures).try(:first)
-        end
-        txn.num = num
+      # num
+      num = parser.extract(/#(\d+)\b/)
+      txn.num = num if num.present?
 
-        # date
-        date, rest = self.class.extract(rest) do |tok| 
-          Chronic.parse(tok).try(:to_date)
-        end
-        txn.date = date
-        
-        # payee
-        txn.payee = Payee.where("name LIKE ?", rest.join('%')).first
-        
+      # date
+      date = parser.extract(/\d+[-\/]\d+(?:[-\/]\d+)?/) do |c| 
+        Chronic.parse(c).try(:to_date)
       end
-
+      txn.date = date
+      
+      # payee
+      txn.payee = Payee.where("name LIKE ?", parser.extract(/.*/)).first
+      
       entries = 
-        tokens_list.drop(1).map do |entry_tokens|
-        ParseEntry.new(entry_tokens).entry
+        lines.drop(1).map do |entry_lines|
+        ParseEntry.new(entry_lines).entry
       end
 
       txn
@@ -49,50 +45,51 @@ module Service
       end
 
       # :account, user, amount, memo, ::classif
-      def parse_entry(tokens)
+      def parse_entry(line)
         entry = Entry.new
+        parser = LineParser.new(line)
+
         # account
-        account, rest = ParseTxn.extract(tokens) do |tok|
-          /^:(.+)/.match(tok).try(:captures).try(:first)
+        entry.account = parser.extract(/:(\S+)/) do |account_name|
+          Account.where('name LIKE ?', account_name).first
         end
-        entry.account = Account.where('name LIKE ?', account).first
 
         # classification
-        # classification, rest = ParseTxn.extract(tokens) do |tok|
+        # classification, rest = parser.extract(tokens) do |tok|
         #   /^::(.+)/.match(tok).try(:captures).try(:first)
         # end
         # entry.account = Classification.where('name LIKE ?', account).first
 
         # amount
-        amount, rest = ParseTxn.extract(tokens) do |tok|
-          m = tok.to_money
-          m.zero? ? nil : m
-        end
-        entry.amount = amount || Money.new(0)
+        entry.amount = parser.extract(/\$[-0-9.,]+\b/) { |s| s.to_money } || 0.to_money
 
         # user
-        user, rest = ParseTxn.extract(tokens) do |tok|
-          User.where(nickname: tok).first
+        entry.user = parser.extract(/\b[a-z]{4}\b/) do |u|
+          User.where(nickname: u).first
         end
-        entry.user = user
 
         entry
       end
     end
 
-    def clean(tokens_list)
-      tokens_list.reject(&:empty?).map { |l| l.reject(&:blank?) }
-    end
-
-    def tokenize(input)
-      input.split(/\n/).map { |l| l.split(/\s+/) }
-    end
-
-    def self.extract(tokens)
-      detected, rest = tokens.partition do |e|
-        yield(e)
+    class LineParser
+      def initialize(line)
+        @line = (line || "").clone
       end
-      [detected.empty? ? nil : yield(detected.first), rest]
+
+      # Removes regex-matching substring from line and returns
+      # capture(s) of the regex
+      def extract(regex)
+        extracted = @line.slice!(regex)
+        if extracted
+          match = extracted.match(regex)
+          if match
+            result = match.captures.empty? ? match.string : 
+              match.captures.size == 1 ? match.captures[0] : match.captures
+            block_given? ? yield(result) : result
+          end
+        end
+      end
     end
   end
 end

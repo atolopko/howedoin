@@ -10,7 +10,7 @@ module Service
     end
     
     def parse
-      lines = @input.strip.split("\n")
+      lines = @input.strip.split(/[\n,;]/)
       parser = LineParser.new(lines.first)
 
       txn = Txn.new
@@ -26,13 +26,14 @@ module Service
       txn.date = date
       
       # payee
-      txn.payee = Payee.where("name LIKE ?", parser.extract(/.*/)).first
-      
-      entries = 
-        lines.drop(1).map do |entry_lines|
-        ParseEntry.new(entry_lines).entry
+      txn.payee = parser.extract(/.*/) do |payee_name|
+        Payee.where("name LIKE ?", "%#{payee_name.strip}%").first
       end
-
+      
+      txn.entries = lines.drop(1).map do |line|
+        ParseEntry.new(line).entry
+      end
+      
       txn
     end
 
@@ -49,11 +50,6 @@ module Service
         entry = Entry.new
         parser = LineParser.new(line)
 
-        # account
-        entry.account = parser.extract(/:(\S+)/) do |account_name|
-          Account.where('name LIKE ?', account_name).first
-        end
-
         # classification
         # classification, rest = parser.extract(tokens) do |tok|
         #   /^::(.+)/.match(tok).try(:captures).try(:first)
@@ -61,11 +57,16 @@ module Service
         # entry.account = Classification.where('name LIKE ?', account).first
 
         # amount
-        entry.amount = parser.extract(/\$[-0-9.,]+\b/) { |s| s.to_money } || 0.to_money
+        entry.amount = parser.extract(/-?\$[0-9.,]+\b/) { |s| s.to_money } || 0.to_money
 
         # user
         entry.user = parser.extract(/\b[a-z]{4}\b/) do |u|
           User.where(nickname: u).first
+        end
+
+        # account
+        entry.account = parser.extract(/.*/) do |account_name|
+          Account.where('name LIKE ?', "%#{account_name.strip}%").first
         end
 
         entry

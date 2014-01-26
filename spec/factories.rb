@@ -45,25 +45,27 @@ FactoryGirl.define do
   factory :txn do
     ignore do
       amount -1.00
+      from_account { FactoryGirl.create(:account, :asset) }
+      to_account { FactoryGirl.create(:account, :expense) }
     end
     date Date.today
     payee
     after(:create) do |txn, evaluator|
       entries = [FactoryGirl.create(:entry, 
                                     txn: txn,
-                                    account: FactoryGirl.create(:account, :asset), 
+                                    account: evaluator.from_account, 
                                     amount: evaluator.amount),
                  FactoryGirl.create(:entry, 
                                     txn: txn,
-                                    account: FactoryGirl.create(:account, :expense), 
+                                    account: evaluator.to_account,
                                     amount: -evaluator.amount)]
     end
   end
 
   factory :posted_transaction do
-    sale_date Date.new
-    sequence(:amount) { |n| BigDecimal("100.00").add(n) }
     account
+    sale_date { Date.current }
+    sequence(:amount, 100) { |n| BigDecimal.new(n, 2) }
     # TODO: txn entry should have same asset account as posted_transaction
     txn
   end

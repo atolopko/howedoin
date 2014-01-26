@@ -36,4 +36,38 @@ describe PostedTransaction do
     end
   end
 
+  describe "#find_matching_txn" do
+    it "returns the pre-associated txn, if it exists" do
+      posted_txn = FactoryGirl.create(:posted_transaction)
+      expect(posted_txn.find_matching_txn).to eq posted_txn.txn
+    end
+
+    it "returns a matching txn, if one exists" do
+      account = FactoryGirl.create(:account, :asset)
+      posted_txn = FactoryGirl.build(:posted_transaction, account: account, amount: -5.11, sale_date: Date.new(2014, 1, 1), txn: nil)
+      matching_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 1))
+      non_matching_amount_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.12, date: Date.new(2014, 1, 1))
+      non_matching_date_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 2))
+      non_matching_account_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 2))
+      expect(posted_txn.find_matching_txn).to eq matching_txn
+    end
+
+    it "raises exception if multiple txns match" do
+      account = FactoryGirl.create(:account, :asset)
+      posted_txn = FactoryGirl.build(:posted_transaction, account: account, amount: -5.11, sale_date: Date.new(2014, 1, 1), txn: nil)
+      matching_txn1 = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 1))
+      matching_txn2 = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 1))
+      expect { posted_txn.find_matching_txn }.to raise_error PostedTransaction::MultipleMatchingTxns, /#{matching_txn1.id}, #{matching_txn2.id}/
+    end
+
+    it "returns nil if no matching txns" do
+      account = FactoryGirl.create(:account, :asset)
+      posted_txn = FactoryGirl.build(:posted_transaction, account: account, amount: -5.11, sale_date: Date.new(2014, 1, 1), txn: nil)
+      non_matching_amount_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.12, date: Date.new(2014, 1, 1))
+      non_matching_date_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 2))
+      non_matching_account_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 2))
+      expect(posted_txn.find_matching_txn).to be_nil
+    end
+  end
+
 end

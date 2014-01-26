@@ -11,6 +11,7 @@ class Txn < ActiveRecord::Base
 
   belongs_to :payee, primary_key: 'payee_id'
   has_many :entries, foreign_key: 'trans_id', autosave: true
+  has_one :posted_transaction
 
   def dup
     new_txn = super

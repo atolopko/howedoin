@@ -538,7 +538,8 @@ CREATE TABLE posted_transactions (
     category text,
     memo text,
     person text,
-    account_id integer NOT NULL
+    account_id integer NOT NULL,
+    txn_id integer NOT NULL
 );
 
 
@@ -1008,6 +1009,14 @@ ALTER TABLE ONLY posted_transactions
 
 
 --
+-- Name: posted_transactions_txn_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY posted_transactions
+    ADD CONSTRAINT posted_transactions_txn_id_fkey FOREIGN KEY (txn_id) REFERENCES transaction(trans_id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -1016,3 +1025,5 @@ SET search_path TO "$user",public;
 INSERT INTO schema_migrations (version) VALUES ('20140125232902');
 
 INSERT INTO schema_migrations (version) VALUES ('20140126130704');
+
+INSERT INTO schema_migrations (version) VALUES ('20140126192451');

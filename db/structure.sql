@@ -3,6 +3,7 @@
 --
 
 SET statement_timeout = 0;
+SET lock_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SET check_function_bodies = false;
@@ -19,7 +20,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
 --
 
--- COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 
 
 SET search_path = public, pg_catalog;
@@ -102,9 +103,9 @@ CREATE FUNCTION concat(text, text) RETURNS text
 -- Name: deltxn(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION deltxn(trans_id integer) RETURNS void
-    LANGUAGE plpgsql
-    AS $$ begin delete from transaction t where t.trans_id = trans_id; end; $$;
+CREATE FUNCTION deltxn(del_trans_id integer) RETURNS void
+    LANGUAGE sql
+    AS $$delete from transaction t where t.trans_id = del_trans_id$$;
 
 
 --
@@ -416,7 +417,18 @@ CREATE TABLE transaction (
 --
 
 CREATE VIEW trip_odometer AS
-    SELECT g.entry_id, (g.odometer - (SELECT g2.odometer FROM ((gas g2 JOIN entry e USING (entry_id)) JOIN transaction t2 USING (trans_id)) WHERE ((g2.vehicle = g.vehicle) AND (t2.date < t.date)) ORDER BY t2.date DESC LIMIT 1)) AS trip_odometer FROM ((gas g JOIN entry e USING (entry_id)) JOIN transaction t USING (trans_id)) ORDER BY g.vehicle, t.date;
+ SELECT g.entry_id, 
+    (g.odometer - ( SELECT g2.odometer
+           FROM ((gas g2
+      JOIN entry e_1 USING (entry_id))
+   JOIN transaction t2 USING (trans_id))
+  WHERE ((g2.vehicle = g.vehicle) AND (t2.date < t.date))
+  ORDER BY t2.date DESC
+ LIMIT 1)) AS trip_odometer
+   FROM ((gas g
+   JOIN entry e USING (entry_id))
+   JOIN transaction t USING (trans_id))
+  ORDER BY g.vehicle, t.date;
 
 
 --
@@ -424,7 +436,20 @@ CREATE VIEW trip_odometer AS
 --
 
 CREATE VIEW gas_history AS
-    SELECT g.vehicle, t.date, g.gallons, e.amount, p.name, g.odometer, o.trip_odometer, round(((o.trip_odometer)::numeric / g.gallons), 1) AS mpg FROM ((((gas g JOIN entry e USING (entry_id)) JOIN transaction t USING (trans_id)) LEFT JOIN payee p USING (payee_id)) JOIN trip_odometer o USING (entry_id)) ORDER BY g.vehicle, t.date;
+ SELECT g.vehicle, 
+    t.date, 
+    g.gallons, 
+    e.amount, 
+    p.name, 
+    g.odometer, 
+    o.trip_odometer, 
+    round(((o.trip_odometer)::numeric / g.gallons), 1) AS mpg
+   FROM ((((gas g
+   JOIN entry e USING (entry_id))
+   JOIN transaction t USING (trans_id))
+   LEFT JOIN payee p USING (payee_id))
+   JOIN trip_odometer o USING (entry_id))
+  ORDER BY g.vehicle, t.date;
 
 
 --
@@ -559,6 +584,45 @@ ALTER SEQUENCE payee_payee_id_seq OWNED BY payee.payee_id;
 
 
 --
+-- Name: posted_transactions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE posted_transactions (
+    id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    sale_date date,
+    post_date date,
+    amount numeric(10,2) NOT NULL,
+    reference_identifier text,
+    type_identifier text,
+    category text,
+    memo text,
+    person text,
+    account_id integer
+);
+
+
+--
+-- Name: posted_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE posted_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: posted_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE posted_transactions_id_seq OWNED BY posted_transactions.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -654,6 +718,13 @@ ALTER TABLE ONLY investment_transaction ALTER COLUMN inv_trans_id SET DEFAULT ne
 --
 
 ALTER TABLE ONLY payee ALTER COLUMN payee_id SET DEFAULT nextval('payee_payee_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY posted_transactions ALTER COLUMN id SET DEFAULT nextval('posted_transactions_id_seq'::regclass);
 
 
 --
@@ -765,6 +836,14 @@ ALTER TABLE ONLY payee
 
 ALTER TABLE ONLY payee
     ADD CONSTRAINT payee_pkey PRIMARY KEY (payee_id);
+
+
+--
+-- Name: posted_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY posted_transactions
+    ADD CONSTRAINT posted_transactions_pkey PRIMARY KEY (id);
 
 
 --
@@ -999,3 +1078,6 @@ ALTER TABLE ONLY gas
 -- PostgreSQL database dump complete
 --
 
+SET search_path TO "$user",public;
+
+INSERT INTO schema_migrations (version) VALUES ('20140125232902');

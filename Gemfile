@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.12'
+gem 'rails', '3.2.14'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -31,6 +31,7 @@ gem 'therubyracer', :require => 'v8'
 # gem 'unicorn'
 
 gem 'chronic', '~> 0.9.1'
+# TODO: use money-rails
 gem "money", "~> 5.1.1"
 
 # Deploy with Capistrano
@@ -41,6 +42,8 @@ group :development do
   gem "guard-rspec", "~> 2.5.2"
   gem "growl"
   gem "rb-fsevent", "~> 0.9.3"
+  gem "pry-full"
+  gem "pry-rails"
 end
 
 group :test, :development do

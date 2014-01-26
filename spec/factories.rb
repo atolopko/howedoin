@@ -57,5 +57,11 @@ FactoryGirl.define do
     end
   end
 
-
+  factory :posted_transaction do
+    sale_date Date.new
+    sequence(:amount) { |n| BigDecimal("100.00").add(n) }
+    account
+    # TODO: txn entry should have same asset account as posted_transaction
+    txn
+  end
 end

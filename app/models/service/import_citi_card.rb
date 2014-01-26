@@ -24,6 +24,7 @@ module Service
           pt.category = t[:category]
           pt.memo = t[:desc]
           pt.person = t[:person]
+          # pt.find_or_create_txn
           pt.save
           @results << pt
         end

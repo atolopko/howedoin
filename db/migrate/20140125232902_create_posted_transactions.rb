@@ -11,7 +11,8 @@ class CreatePostedTransactions < ActiveRecord::Migration
       t.text :memo
       t.text :person
 
-      t.references :account, null: true
+      t.references :account, null: false
+      # t.references :txn, null: false
     end
   end
 end

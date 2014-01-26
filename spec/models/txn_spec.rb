@@ -39,4 +39,14 @@ describe Txn do
     end
   end
 
+  describe "#amount" do
+    let(:txn) { FactoryGirl.create(:txn, amount: -19.99) }
+
+    it "sums the entries that are assets or liabilities" do
+      txn.entries << FactoryGirl.create(:entry, account: FactoryGirl.create(:account, :liability), amount: -0.01)
+      txn.entries << FactoryGirl.create(:entry, account: FactoryGirl.create(:account, :income), amount: 0.01)
+      expect(txn.amount).to eq -20.00
+    end
+  end
+
 end

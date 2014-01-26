@@ -43,17 +43,20 @@ FactoryGirl.define do
   end
 
   factory :txn do
+    ignore do
+      amount -1.00
+    end
     date Date.today
     payee
     after(:create) do |txn, evaluator|
       entries = [FactoryGirl.create(:entry, 
                                     txn: txn,
                                     account: FactoryGirl.create(:account, :asset), 
-                                    amount: -1.00),
+                                    amount: evaluator.amount),
                  FactoryGirl.create(:entry, 
                                     txn: txn,
                                     account: FactoryGirl.create(:account, :expense), 
-                                    amount: 1.00)]
+                                    amount: -evaluator.amount)]
     end
   end
 

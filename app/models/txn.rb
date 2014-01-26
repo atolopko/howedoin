@@ -19,6 +19,14 @@ class Txn < ActiveRecord::Base
     new_txn
   end
 
+  def payee_name
+    payee.name
+  end
+
+  def amount
+    entries.joins(:account).where(account: { acct_type: ['asset', 'liability'] }).sum(:amount)
+  end
+
   private
 
   def set_entered

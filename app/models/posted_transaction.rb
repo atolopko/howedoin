@@ -41,12 +41,6 @@ class PostedTransaction < ActiveRecord::Base
     end
   end
 
-  # def find_matching_new_txn_template
-  # end
-
-  # def create_new_txn_from_template(new_txn_template)
-  # end
-
   def unique_data
     if matching.present?
       errors[:data] = "non-unique data"

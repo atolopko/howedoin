@@ -24,7 +24,10 @@ module Service
           pt.category = t[:category]
           pt.memo = t[:desc]
           pt.person = t[:person]
-          # pt.find_or_create_txn
+          begin
+            pt.txn = find_or_create_txn(pt)
+          rescue StandardError => e
+          end
           pt.save
           @results << pt
         end
@@ -40,6 +43,24 @@ module Service
     end
 
     private
+
+    def create_txn(pt)
+      txn = Txn.new(date: pt.sale_date)
+      txn.entries << Entry.new(account: pt.account,
+                               user: User.first,
+                               amount: -pt.amount,
+                               memo: pt.memo,
+                               num: pt.reference_identifier)
+      txn.entries << Entry.new(account: Account.where(name: 'unassigned').first,
+                               user: User.first,
+                               amount: pt.amount)
+      txn.save!
+      txn
+    end
+
+    def find_or_create_txn(pt)
+      pt.find_matching_txn || create_txn(pt)
+    end
 
     def associated_account
       @associated_account ||= Account.where("name like 'Citibank MasterCard%'").first

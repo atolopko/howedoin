@@ -24,10 +24,7 @@ module Service
           pt.category = t[:category]
           pt.memo = t[:desc]
           pt.person = t[:person]
-          begin
-            pt.txn = find_or_create_txn(pt)
-          rescue StandardError => e
-          end
+          pt.txn = find_or_create_txn(pt)
           pt.save
           @results << pt
         end
@@ -44,22 +41,25 @@ module Service
 
     private
 
+    def find_txn_factory(pt)
+      return DefaultTxnFactory.new
+    end
+
     def create_txn(pt)
-      txn = Txn.new(date: pt.sale_date)
-      txn.entries << Entry.new(account: pt.account,
-                               user: User.first,
-                               amount: -pt.amount,
-                               memo: pt.memo,
-                               num: pt.reference_identifier)
-      txn.entries << Entry.new(account: Account.where(name: 'unassigned').first,
-                               user: User.first,
-                               amount: pt.amount)
+      txn_factory = find_txn_factory(pt)
+      txn = txn_factory.build(pt)
       txn.save!
       txn
     end
 
     def find_or_create_txn(pt)
+      # TODO: txn matching could be more accurate if performed by each
+      # TxnFactory, since it can match more specific attributes &
+      # values
       pt.find_matching_txn || create_txn(pt)
+    rescue StandardError => e
+      Rails.logger.error("#find_or_create_txn: #{e.message}")
+      nil
     end
 
     def associated_account

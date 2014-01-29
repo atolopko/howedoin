@@ -23,17 +23,19 @@ class PostedTransaction < ActiveRecord::Base
       first
   end
 
-  # # Attempts to find a matching Txn, based upon heuristics. If no
-  # # found, creates a new Txn using a PostedTransactionNewTxnTemplate
-  # def find_or_create_txn
-  # end
-
   class MultipleMatchingTxns < StandardError
   end
 
+  # Attempts to find a matching Txn, comparing sale_date, account, and amount
   def find_matching_txn
     return txn if txn
-    candidates = Txn.where('NOT EXISTS (select 1 from posted_transactions pt where pt.txn_id = transaction.trans_id)').where(date: sale_date).joins(:entries).where(entry: { acct_id: account.id }).group('transaction.trans_id').having('sum(amount) = ?', amount).all
+    candidates = Txn.
+      where('NOT EXISTS (select 1 from posted_transactions pt where pt.txn_id = transaction.trans_id)').
+      where(date: sale_date).joins(:entries).
+      where(entry: { acct_id: account.id }).
+      group('transaction.trans_id').
+      having('sum(amount) = ?', amount).
+      all
     if candidates.size > 1
       raise MultipleMatchingTxns, candidates.map(&:id).join(", ") 
     else

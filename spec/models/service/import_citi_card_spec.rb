@@ -49,33 +49,51 @@ module Service
       it "associates with correct account" do
         expect(PostedTransaction.first.account).to eq associated_account
       end
-
-      it "creates associated Txn" do
-        expect(PostedTransaction.first.txn.date).to eq Date.new(2014, 1, 17)
-      end
-
-      it "creates associated Txn entries" do
-        expect(PostedTransaction.first.txn.entries[0].attributes.symbolize_keys).
-          to include({acct_id: associated_account.id,
-                       user_id: user.id,
-                       amount: -0.99,
-                       memo: 'NEW YORK TIMES DIGITAL 100001 NY',
-                       num: 'xyz123'})
-        expect(PostedTransaction.first.txn.entries[1].attributes.symbolize_keys).
-          to include({acct_id: unassigned_account.id,
-                       user_id: user.id,
-                       amount: 0.99,
-                       memo: nil,
-                       num: nil})
-      end
     end
 
     describe "#import" do
-      describe "valid transactions" do
+      describe "valid posted transactions without existing transactions" do
         before do
           ImportCitiCard.new(posted_txns).import
         end
+
         it_should_behave_like "persisted posted transactions"
+
+        it "creates associated Txn" do
+          expect(PostedTransaction.first.txn.date).to eq Date.new(2014, 1, 17)
+        end
+
+        it "creates associated Txn entries" do
+          expect(PostedTransaction.first.txn.entries[0].attributes.symbolize_keys).
+            to include({acct_id: associated_account.id,
+                         user_id: user.id,
+                         amount: -0.99,
+                         memo: 'NEW YORK TIMES DIGITAL 100001 NY',
+                         num: 'xyz123'})
+          expect(PostedTransaction.first.txn.entries[1].attributes.symbolize_keys).
+            to include({acct_id: unassigned_account.id,
+                         user_id: user.id,
+                         amount: 0.99,
+                         memo: nil,
+                         num: nil})
+        end
+      end
+
+      describe "valid posted transactions with existing transactions" do
+        let!(:existing_txn) { FactoryGirl.create(:txn,
+                                                 date: Date.new(2014, 1, 17),
+                                                 amount: 0.99,
+                                                 from_account: associated_account) }
+
+        before do
+          ImportCitiCard.new(posted_txns).import
+        end
+
+        it_should_behave_like "persisted posted transactions"
+
+        it "associates with existing Txn" do
+          expect(PostedTransaction.first.txn).to eq existing_txn
+        end
       end
 
       describe "invalid transactions" do

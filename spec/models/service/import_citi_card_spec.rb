@@ -118,8 +118,7 @@ module Service
         it "provides errors in returned posted transactions" do
           icc = ImportCitiCard.new(posted_txns)
           icc.import
-          expect(icc.results[1].errors.messages).to eq({amount: ["can't be blank", "is not a number"],
-                                                       txn: ["can't be blank"]})
+          expect(icc.results[1].errors.messages).to eq({amount: ["can't be blank", "is not a number"]})
         end
       end
     end

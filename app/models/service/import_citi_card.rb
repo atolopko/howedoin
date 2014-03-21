@@ -36,7 +36,7 @@ module Service
     end
 
     def errors?
-      @results.any? { |pt| !pt.persisted? }
+      @results.any? { |pt| pt.invalid? }
     end
 
     private
@@ -47,9 +47,7 @@ module Service
 
     def create_txn(pt)
       txn_factory = find_txn_factory(pt)
-      txn = txn_factory.build(pt)
-      txn.save!
-      txn
+      txn_factory.build(pt)
     end
 
     def find_or_create_txn(pt)
@@ -57,9 +55,6 @@ module Service
       # TxnFactory, since it can match more specific attributes &
       # values
       pt.find_matching_txn || create_txn(pt)
-    rescue StandardError => e
-      Rails.logger.error("#find_or_create_txn: #{e.message}")
-      nil
     end
 
     def associated_account

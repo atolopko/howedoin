@@ -20,6 +20,7 @@ class PostedTransaction < ActiveRecord::Base
             memo: memo,
             person: person).
       where(account_id: account.id).
+      where('id <> ?', id || -1).
       first
   end
 

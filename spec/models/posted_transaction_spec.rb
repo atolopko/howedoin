@@ -25,14 +25,21 @@ describe PostedTransaction do
 
     it "does not find matching when all data attributes match but account is different" do
       saved_posted_txn = new_posted_txn
+      saved_posted_txn.account = FactoryGirl.create(:account)
       saved_posted_txn.save!
-      expect(new_posted_txn.matching).to eq saved_posted_txn
+      expect(new_posted_txn.matching).to be_nil
     end
 
     it "does not find matching when account matches but some data attributes do not match" do
       saved_posted_txn = new_posted_txn
       saved_posted_txn.save!
       expect(new_posted_txn.matching).to eq saved_posted_txn
+    end
+
+    it "does not find matching after persisted, since it excludes own record from comparison" do
+      saved_posted_txn = new_posted_txn
+      saved_posted_txn.save!
+      expect(saved_posted_txn.matching).to be_nil
     end
   end
 
@@ -67,6 +74,16 @@ describe PostedTransaction do
       non_matching_date_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 2))
       non_matching_account_txn = FactoryGirl.create(:txn, from_account: account, amount: -5.11, date: Date.new(2014, 1, 2))
       expect(posted_txn.find_matching_txn).to be_nil
+    end
+  end
+
+  describe "non-unique record" do
+    let(:persisted) { FactoryGirl.create(:posted_transaction) } 
+    let(:unpersisted) { FactoryGirl.build(:posted_transaction,
+                                          persisted.attributes.delete_if { |k| k == 'id'}) }
+
+    it "is invalid" do
+      expect(unpersisted).to be_invalid
     end
   end
 

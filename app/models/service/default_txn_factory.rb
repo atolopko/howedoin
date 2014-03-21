@@ -15,7 +15,7 @@ module Service
                     payee: @payee)
       txn.entries << Entry.new(account: pt.account,
                                user: @user,
-                               amount: -pt.amount,
+                               amount: (-pt.amount if pt.amount),
                                memo: pt.memo,
                                num: pt.reference_identifier)
       txn.entries << Entry.new(account: @to_account,

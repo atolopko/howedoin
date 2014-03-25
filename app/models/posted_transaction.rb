@@ -5,7 +5,7 @@ class PostedTransaction < ActiveRecord::Base
   belongs_to :txn, primary_key: 'trans_id', foreign_key: 'txn_id'
 
   validates :account, presence: true
-  validates :txn, presence: true#, uniqueness: true
+  validates :txn_id, uniqueness: true, allow_nil: true
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true
   validate :unique_data

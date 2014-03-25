@@ -10,7 +10,7 @@ module Service
       @posted_txns_json = posted_txns_json
     end
 
-    def import
+    def import(abort_on_error = true)
       @results = []
       PostedTransaction.transaction do
         @posted_txns_json.each do |t|
@@ -24,15 +24,18 @@ module Service
           pt.category = t[:category]
           pt.memo = t[:desc]
           pt.person = t[:person]
-          pt.txn = find_or_create_txn(pt)
           pt.save
           @results << pt
         end
-        if errors?
+        if errors? && abort_on_error
           raise ActiveRecord::Rollback, "import errors"
         end
         true
       end
+    end
+
+    def errors
+      @results.select { |pt| pt.invalid? }.map(&:errors)
     end
 
     def errors?

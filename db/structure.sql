@@ -539,7 +539,7 @@ CREATE TABLE posted_transactions (
     memo text,
     person text,
     account_id integer NOT NULL,
-    txn_id integer NOT NULL
+    txn_id integer
 );
 
 
@@ -784,6 +784,14 @@ ALTER TABLE ONLY payee
 
 ALTER TABLE ONLY posted_transactions
     ADD CONSTRAINT posted_transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: posted_transactions_uniq_txn_id; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY posted_transactions
+    ADD CONSTRAINT posted_transactions_uniq_txn_id UNIQUE (txn_id);
 
 
 --

@@ -20,26 +20,26 @@ describe PostedTransaction do
     it "finds matching when account and all data attributes match" do
       saved_posted_txn = new_posted_txn
       saved_posted_txn.save!
-      expect(new_posted_txn.matching).to eq saved_posted_txn
+      expect(new_posted_txn.matching).to eq [saved_posted_txn]
     end
 
     it "does not find matching when all data attributes match but account is different" do
       saved_posted_txn = new_posted_txn
       saved_posted_txn.account = FactoryGirl.create(:account)
       saved_posted_txn.save!
-      expect(new_posted_txn.matching).to be_nil
+      expect(new_posted_txn.matching).to be_empty
     end
 
     it "does not find matching when account matches but some data attributes do not match" do
       saved_posted_txn = new_posted_txn
-      saved_posted_txn.save!
-      expect(new_posted_txn.matching).to eq saved_posted_txn
+      saved_posted_txn.update_attributes!(amount: BigDecimal("1.16"))
+      expect(new_posted_txn.matching).to be_empty
     end
 
     it "does not find matching after persisted, since it excludes own record from comparison" do
       saved_posted_txn = new_posted_txn
       saved_posted_txn.save!
-      expect(saved_posted_txn.matching).to be_nil
+      expect(saved_posted_txn.matching).to be_empty
     end
   end
 

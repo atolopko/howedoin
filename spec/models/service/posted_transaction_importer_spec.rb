@@ -1,62 +1,55 @@
 require 'spec_helper'
 
 module Service
-  describe ImportCiticard do
+  describe PostedTransactionImporter do
 
-    let(:posted_txns) { 
-      [{:sale_date=>"01/17/2014",
-         :desc=>"NEW YORK TIMES DIGITAL 100001 NY",
-         :amt=>"$0.99",
-         :type=>"2",
-         :post_date=>"01/18/2014",
-         :category=>"DIRECT MARKETING-CONTINUITY SUBSCRIPTION",
-         :ref_numb=>"xyz123",
-         :person=>"Joe Banks"},
-       {:sale_date=>"01/14/2014",
-         :desc=>"MEXI CALI RESTAURANT",
-         :amt=>"$28.73",
-         :type=>"2",
-         :post_date=>"01/14/2014",
-         :category=>"EATING PLACE,RESTAURANT"},
-       {:sale_date=>"01/19/2014",
-         :desc=>"ELECTRONIC PAYMENT-THANK YOU",
-         :amt=>"-$1,429.73",
-         :type=>"1",
-         :post_date=>"01/20/2014"}] }
+    let(:importer) { PostedTransactionImporter.new(records, associated_account) }
+    let(:records) {
+      [{ desc: "record1" },
+       { desc: "record2" },
+       { desc: "record3" }]
+    }
     let(:input_file) { StringIO.new(posted_txns_json) }
-    let(:posted_txns_json) { MultiJson.dump(posted_txns) }
-    let!(:associated_account) { FactoryGirl.create(:account, name: 'Citibank MasterCard', acct_type_val: 'liability') }
+    let(:posted_txns_json) { MultiJson.dump(records) }
+    let!(:associated_account) { FactoryGirl.create(:account, name: 'account', acct_type_val: 'liability') }
     let!(:unassigned_account) { FactoryGirl.create(:account, name: 'unassigned', acct_type_val: 'expense') }
     let!(:user) { FactoryGirl.create(:user) }
 
+    before do
+      allow(importer).to receive(:populate) do |pt, r|
+        # make a valid PostedTransaction
+        pt.sale_date = Date.new(2014, 1, 1)
+        pt.post_date = Date.new(2014, 1, 1)
+        pt.memo = r[:desc]
+        pt.amount = BigDecimal.new("1.00")
+        pt.type_identifier = 'type'
+        pt.category = 'category'
+        pt.person = 'person'
+      end
+    end
+
     shared_examples "persisted posted transactions" do
       it "persists all transactions" do
+        importer.import
         expect(PostedTransaction.count).to eq 3
       end
 
-      it "persists data correctly" do
-        expect(PostedTransaction.first.attributes).
-          to include({"sale_date"=>Date.new(2014, 1, 17),
-                       "post_date"=>Date.new(2014, 1, 18),
-                       "amount"=>BigDecimal("0.99"),
-                       "reference_identifier"=>"xyz123",
-                       "type_identifier"=>"2",
-                       "category"=>"DIRECT MARKETING-CONTINUITY SUBSCRIPTION",
-                       "memo"=>"NEW YORK TIMES DIGITAL 100001 NY",
-                       "person"=>"Joe Banks"})
+      it "calls populate template method for each record" do
+        expect(importer).to receive(:populate).with(kind_of(PostedTransaction), records[0]).once.ordered
+        expect(importer).to receive(:populate).with(kind_of(PostedTransaction), records[1]).once.ordered
+        expect(importer).to receive(:populate).with(kind_of(PostedTransaction), records[2]).once.ordered
+        importer.import
       end
 
       it "associates with correct account" do
-        expect(PostedTransaction.first.account).to eq associated_account
+        importer.import
+        expect(PostedTransaction.pluck(:account_id).uniq).to eq [associated_account.id]
       end
     end
 
     describe "#import" do
-      describe "valid posted transactions without existing transactions" do
-        before do
-          ImportCiticard.new(posted_txns).import
-        end
 
+      describe "valid posted transactions without existing transactions" do
         it_should_behave_like "persisted posted transactions"
 
         # it "creates associated Txn" do
@@ -86,7 +79,7 @@ module Service
       # #                                            from_account: associated_account) }
 
       # #   before do
-      # #     ImportCiticard.new(posted_txns).import
+      # #     PostedTransactionImporter.new(posted_txns).import
       # #   end
 
       # #   it_should_behave_like "persisted posted transactions"
@@ -98,35 +91,37 @@ module Service
 
       describe "invalid transactions" do
         before do
-          posted_txns[1][:amt] = nil
+          # force PostedTransaction to be invalid
+          allow(importer).to receive(:populate) do |pt, r|
+            pt.errors.add(:base, "bad, bad, bad")
+          end
         end
 
         it "returns false" do
-          expect(ImportCiticard.new(posted_txns).import).to be_false
+          expect(importer.import).to be_false
         end
 
         it "does not persist any PostedTransactions" do
-          ImportCiticard.new(posted_txns).import
+          importer.import
           expect(PostedTransaction.count).to eq 0
         end
 
         it "does not persist any Txns" do
-          ImportCiticard.new(posted_txns).import
+          importer.import
           expect(Txn.count).to eq 0
         end
 
         it "provides errors in returned posted transactions" do
-          icc = ImportCiticard.new(posted_txns)
-          icc.import
-          expect(icc.results[1].errors.messages).to eq({amount: ["can't be blank", "is not a number"]})
+          importer.import
+          expect(importer.results[1].errors.messages).to eq({amount: ["can't be blank", "is not a number"]})
         end
       end
     end
 
     describe ".load" do
       it "parses json and stores as hash" do
-        expect(ImportCiticard).to receive(:new).with(posted_txns)
-        ImportCiticard.load(input_file)
+        expect(PostedTransactionImporter).to receive(:new).with(records)
+        PostedTransactionImporter.load(input_file)
       end
     end
 

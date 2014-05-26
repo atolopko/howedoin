@@ -11,17 +11,20 @@ class PostedTransaction < ActiveRecord::Base
   validate :unique_data
 
   def matching
-    PostedTransaction.
-      where(sale_date: sale_date,
+    query = PostedTransaction.
+      where(account_id: account.id,
+            sale_date: sale_date,
             post_date: post_date,
             amount: amount,
             type_identifier: type_identifier,
             category: category,
             memo: memo,
-            person: person).
-      where(account_id: account.id).
-      where('id <> ?', id || -1).
-      first
+            person: person)
+    if persisted?
+      query.where('id <> ?', id)
+    else
+      query
+    end
   end
 
   class MultipleMatchingTxns < StandardError
@@ -45,7 +48,7 @@ class PostedTransaction < ActiveRecord::Base
   end
 
   def unique_data
-    if matching.present?
+    if matching.exists?
       errors[:data] = "non-unique data"
     end
   end

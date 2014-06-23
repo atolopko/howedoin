@@ -11,20 +11,17 @@ class PostedTransaction < ActiveRecord::Base
   validate :unique_data
 
   def matching
+    raise "can only be called if not persisted" if persisted?
     query = PostedTransaction.
       where(account_id: account.id,
             sale_date: sale_date,
             post_date: post_date,
             amount: amount,
+            reference_identifier: reference_identifier,
             type_identifier: type_identifier,
             category: category,
             memo: memo,
             person: person)
-    if persisted?
-      query.where('id <> ?', id)
-    else
-      query
-    end
   end
 
   class MultipleMatchingTxns < StandardError
@@ -49,7 +46,7 @@ class PostedTransaction < ActiveRecord::Base
 
   def unique_data
     if matching.exists?
-      errors[:data] = "non-unique data"
+      errors[:data] = "non-unique"
     end
   end
 

@@ -5,9 +5,9 @@ module Service
 
     let(:importer) { PostedTransactionImporter.new(records, associated_account) }
     let(:records) {
-      [{ desc: "record1" },
-       { desc: "record2" },
-       { desc: "record3" }]
+      [{ reference_identifier: "record1" },
+       { reference_identifier: "record2" },
+       { reference_identifier: "record3" }]
     }
     let(:input_file) { StringIO.new(posted_txns_json) }
     let(:posted_txns_json) { MultiJson.dump(records) }
@@ -16,12 +16,13 @@ module Service
     let!(:user) { FactoryGirl.create(:user) }
 
     before do
-      allow(importer).to receive(:populate) do |pt, r|
+      def importer.populate(pt, r)
         # make a valid PostedTransaction
         pt.sale_date = Date.new(2014, 1, 1)
         pt.post_date = Date.new(2014, 1, 1)
-        pt.memo = r[:desc]
+        pt.memo = 'memo'
         pt.amount = BigDecimal.new("1.00")
+        pt.reference_identifier = r[:reference_identifier]
         pt.type_identifier = 'type'
         pt.category = 'category'
         pt.person = 'person'
@@ -34,16 +35,18 @@ module Service
         expect(PostedTransaction.count).to eq 3
       end
 
-      it "calls populate template method for each record" do
-        expect(importer).to receive(:populate).with(kind_of(PostedTransaction), records[0]).once.ordered
-        expect(importer).to receive(:populate).with(kind_of(PostedTransaction), records[1]).once.ordered
-        expect(importer).to receive(:populate).with(kind_of(PostedTransaction), records[2]).once.ordered
+      it "persists data correctly" do
         importer.import
-      end
-
-      it "associates with correct account" do
-        importer.import
-        expect(PostedTransaction.pluck(:account_id).uniq).to eq [associated_account.id]
+        expect(PostedTransaction.first.attributes).
+          to include({ "account_id" => associated_account.id,
+                       "sale_date" => Date.new(2014, 1, 1),
+                       "post_date" => Date.new(2014, 1, 1),
+                       "amount" => BigDecimal("1.00"),
+                       "reference_identifier" => "record1",
+                       "type_identifier" => "type",
+                       "category" => "category",
+                       "memo" => "memo",
+                       "person" => "person"})
       end
     end
 

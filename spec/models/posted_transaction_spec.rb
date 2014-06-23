@@ -36,10 +36,10 @@ describe PostedTransaction do
       expect(new_posted_txn.matching).to be_empty
     end
 
-    it "does not find matching after persisted, since it excludes own record from comparison" do
+    it "does not allow itself to be called if already persisted" do
       saved_posted_txn = new_posted_txn
       saved_posted_txn.save!
-      expect(saved_posted_txn.matching).to be_empty
+      expect { saved_posted_txn.matching }.to raise_error /can only be called if not persisted/
     end
   end
 
@@ -78,12 +78,24 @@ describe PostedTransaction do
   end
 
   describe "non-unique record" do
-    let(:persisted) { FactoryGirl.create(:posted_transaction) } 
+    let(:persisted) { FactoryGirl.create(:posted_transaction,
+                                         post_date: Date.current,
+                                         amount: BigDecimal.new('1.00'),
+                                         reference_identifier: 'reference_identifier',
+                                         type_identifier: 'type_identifier',
+                                         category: 'category',
+                                         memo: 'memo', 
+                                         person: 'person') } 
     let(:unpersisted) { FactoryGirl.build(:posted_transaction,
-                                          persisted.attributes.delete_if { |k| k == 'id'}) }
+                                          persisted.attributes.delete_if { |k| k == 'id' }) }
 
     it "is invalid" do
       expect(unpersisted).to be_invalid
+    end
+
+    it "is invalid" do
+      unpersisted.valid?
+      expect(unpersisted.errors.full_messages).to include "Data non-unique"
     end
   end
 

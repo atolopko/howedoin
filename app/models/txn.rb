@@ -28,6 +28,11 @@ class Txn < ActiveRecord::Base
     entries.joins(:account).where(account: { acct_type: ['asset', 'liability'] }).sum(:amount)
   end
 
+  def pretty_print
+    "#{date.strftime('%F')} \"#{payee || '<none>'}\" #{amount}\n" +
+      entries.map(&:pretty_print).join("\n")
+  end
+
   private
 
   def set_entered

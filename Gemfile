@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.14'
+gem 'rails', '~> 4.1.8'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -11,8 +11,8 @@ gem 'pg'
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
-  gem 'sass-rails',   '~> 3.2.3'
-  gem 'coffee-rails', '~> 3.2.1'
+  gem 'sass-rails',   '~> 4.0.4'
+  gem 'coffee-rails', '~> 4.1.0'
 
   # See https://github.com/sstephenson/execjs#readme for more supported runtimes
   # gem 'therubyracer', :platforms => :ruby
@@ -39,7 +39,7 @@ gem "money", "~> 5.1.1"
 
 group :development do
   # for Guard automated testing (4 gems)
-  gem "guard-rspec", "~> 2.5.2"
+#  gem "guard-rspec"
   gem "growl"
   gem "rb-fsevent", "~> 0.9.3"
   gem "pry-full"
@@ -47,11 +47,11 @@ group :development do
 end
 
 group :test, :development do
-  gem "rspec-rails", "~> 2.0"
+  gem 'rspec-rails', '~> 3.0'
   # To use debugger
   gem 'debugger'
 end
 
 group :test do
-  gem "factory_girl_rails", "~> 4.0"
+  gem 'factory_girl_rails', '~> 4.5'
 end

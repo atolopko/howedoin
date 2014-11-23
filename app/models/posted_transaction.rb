@@ -1,5 +1,5 @@
 class PostedTransaction < ActiveRecord::Base
-  attr_accessible :account, :amount
+  # attr_accessible :account, :amount
 
   belongs_to :account, primary_key: 'acct_id', foreign_key: 'account_id'
   belongs_to :txn, primary_key: 'trans_id', foreign_key: 'txn_id'

@@ -1,7 +1,7 @@
 FactoryGirl.define do
 
   factory :account do
-    ignore do
+    transient do
       acct_type_val 'asset'
     end
     acct_type { acct_type_val }
@@ -43,7 +43,7 @@ FactoryGirl.define do
   end
 
   factory :txn do
-    ignore do
+    transient do
       amount -1.00
       from_account { FactoryGirl.create(:account, :asset) }
       to_account { FactoryGirl.create(:account, :expense) }

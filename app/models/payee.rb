@@ -1,7 +1,7 @@
 class Payee < ActiveRecord::Base
   self.table_name = 'payee'
 
-  attr_accessible :name
+  # attr_accessible :name
 
   has_many :txns
 

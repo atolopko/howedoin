@@ -1,7 +1,7 @@
 class Txn < ActiveRecord::Base
   self.table_name = 'transaction'
 
-  attr_accessible :date, :payee
+  # attr_accessible :date, :payee
 
   attr_accessor :num
 

@@ -36,10 +36,10 @@ describe PostedTransaction do
       expect(new_posted_txn.matching).to be_empty
     end
 
-    it "does not allow itself to be called if already persisted" do
+    it "does not find itself if persisted" do
       saved_posted_txn = new_posted_txn
       saved_posted_txn.save!
-      expect { saved_posted_txn.matching }.to raise_error /can only be called if not persisted/
+      expect(saved_posted_txn.matching).to be_empty
     end
   end
 

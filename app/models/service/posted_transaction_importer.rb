@@ -13,7 +13,7 @@ module Service
       @associated_account = associated_account
     end
 
-    def import(abort_on_error = true)
+    def import(fail_fast = true)
       @results = []
       PostedTransaction.transaction do
         @posted_txns_json.each do |record|
@@ -23,7 +23,7 @@ module Service
           pt.save
           @results << pt
         end
-        if errors? && abort_on_error
+        if errors? && fail_fast
           raise ActiveRecord::Rollback, "import errors"
         end
         true

@@ -4,19 +4,16 @@ module Service
   class PostedTransactionImporter
     attr_accessor :results
 
-    def self.load(file)
-      new(MultiJson.load(file, symbolize_keys: true))
-    end
-
-    def initialize(posted_txns_json, associated_account)
-      @posted_txns_json = posted_txns_json
+    # posted_txns: array of hashes
+    def initialize(posted_txns, associated_account)
+      @posted_txns = posted_txns
       @associated_account = associated_account
     end
 
     def import(abort_on_error = true)
       @results = []
       PostedTransaction.transaction do
-        @posted_txns_json.each do |record|
+        @posted_txns.each do |record|
           pt = PostedTransaction.new
           pt.account = @associated_account
           populate(pt, record)

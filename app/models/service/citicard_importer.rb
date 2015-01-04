@@ -1,22 +1,21 @@
+require 'csv'
+
 module Service
-  # Imports raw transactions from a Citicard as PostedTransactions.
+  # Imports raw transactions from a Citicard CSV downloaded statement as PostedTransactions.
   class CiticardImporter < PostedTransactionImporter
 
-    def initialize(posted_txns_json)
-      super(posted_txns_json, associated_account)
+    def initialize(posted_txns_csv_io)
+      csv = CSV.new(posted_txns_csv_io, headers: [:post_date, :amt, :memo])
+      posted_txns = csv.readlines.map { |r| r.to_hash }
+      super(posted_txns, associated_account)
     end
 
     private
 
     def populate(pt, r)
-      pt.sale_date = Date.strptime r[:sale_date], "%m/%d/%Y"
-      pt.post_date = Date.strptime r[:post_date], "%m/%d/%Y"
+      pt.post_date = Date.strptime r[:post_date], "%Y-%m-%d"
       pt.amount = BigDecimal.new(r[:amt].gsub(/[$,]/, '')) if r[:amt]
-      pt.reference_identifier = r[:ref_numb]
-      pt.type_identifier = r[:type]
-      pt.category = r[:category]
-      pt.memo = r[:desc]
-      pt.person = r[:person]
+      pt.memo = r[:memo]
     end
     
     def associated_account

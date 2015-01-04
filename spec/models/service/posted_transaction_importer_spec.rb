@@ -101,13 +101,5 @@ module Service
         end
       end
     end
-
-    describe ".load" do
-      it "parses json and stores as hash" do
-        expect(PostedTransactionImporter).to receive(:new).with(records)
-        PostedTransactionImporter.load(input_file)
-      end
-    end
-
   end
 end

@@ -5,12 +5,13 @@ module Service
 
     def build_importer(records, account)
       importer = PostedTransactionImporter.new(records, associated_account)
+      # implement the abstract method
       def importer.populate(pt, r)
         # make a valid PostedTransaction
         pt.sale_date = Date.new(2014, 1, 1)
         pt.post_date = Date.new(2014, 1, 1)
         pt.memo = 'memo'
-        pt.amount = BigDecimal.new("1.00")
+        pt.amount = r[:amount] || BigDecimal.new("1.00")
         pt.reference_identifier = r[:reference_identifier]
         pt.type_identifier = 'type'
         pt.category = 'category'
@@ -76,13 +77,11 @@ module Service
       describe "invalid posted transactions" do
         before do
           # force PostedTransaction to be invalid
-          allow(importer).to receive(:populate) do |pt, r|
-            pt.errors.add(:base, "bad, bad, bad")
-          end
+          records.first[:amount] = 'bad number'
         end
 
-        it "returns false" do
-          expect(importer.import).to be_false
+        it "returns imported count of zero" do
+          expect(importer.import).to eq(0)
         end
 
         it "does not persist any PostedTransactions" do
@@ -90,14 +89,40 @@ module Service
           expect(PostedTransaction.count).to eq 0
         end
 
-        # it "does not persist any Txns" do
-        #   importer.import
-        #   expect(Txn.count).to eq 0
-        # end
-
-        it "provides errors in returned posted transactions" do
+        it "reports zero imported transactions" do
           importer.import
-          expect(importer.results[1].errors.messages).to eq({amount: ["can't be blank", "is not a number"]})
+          expect(importer.imported).to be_empty
+        end
+
+        it "reports errors" do
+          importer.import
+          expect(importer.errors.first[1]).to eq("Amount is not a number")
+        end
+      end
+
+      describe "invalid posted transactions, abort_on_error flag is not set" do
+        before do
+          # force PostedTransaction to be invalid
+          records.first[:amount] = 'bad number'
+        end
+
+        it "returns imported count" do
+          expect(importer.import(abort_on_error: false)).to eq(2)
+        end
+
+        it "persists only valid PostedTransactions" do
+          importer.import(abort_on_error: false)
+          expect(PostedTransaction.count).to eq 2
+        end
+
+        it "reports two imported transactions if abort_on_error flag is not set" do
+          importer.import(abort_on_error: false)
+          expect(importer.imported).to have(2).items
+        end
+
+        it "reports errors" do
+          importer.import(abort_on_error: false)
+          expect(importer.errors.first[1]).to eq("Amount is not a number")
         end
       end
     end

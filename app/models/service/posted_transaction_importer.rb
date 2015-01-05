@@ -2,7 +2,7 @@ module Service
   # Imports raw transactions from a financial service account as
   # PostedTransactions.
   class PostedTransactionImporter
-    attr_accessor :results
+    attr_accessor :imported, :errors
 
     # posted_txns: array of hashes
     def initialize(posted_txns, associated_account)
@@ -10,29 +10,38 @@ module Service
       @associated_account = associated_account
     end
 
-    def import(abort_on_error = true)
-      @results = []
+    def import(abort_on_error: true)
+      @imported = []
+      @errors = []
       PostedTransaction.transaction do
         @posted_txns.each do |record|
           pt = PostedTransaction.new
           pt.account = @associated_account
-          populate(pt, record)
-          pt.save
-          @results << pt
+          begin
+            populate(pt, record)
+            if pt.save
+              @imported << pt
+            else
+              @errors << [record, pt.errors.full_messages.join(", ")]
+            end
+          rescue StandardError => e
+            @errors << [record, e.to_s]
+          end
         end
-        if errors? && abort_on_error
+        if @errors.present? && abort_on_error
+          @imported.clear
           raise ActiveRecord::Rollback, "import errors"
         end
-        true
       end
+      @imported.count
     end
 
-    def errors
-      @results.select { |pt| pt.invalid? }.map(&:errors)
+    def format_errors
+      @errors.map { |data, errors| "#{data} => #{errors}" }.join("\n")
     end
 
     def errors?
-      @results.any? { |pt| pt.invalid? }
+      @errors.present?
     end
 
     private

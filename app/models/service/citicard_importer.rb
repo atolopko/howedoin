@@ -4,10 +4,10 @@ module Service
   # Imports raw transactions from a Citicard CSV downloaded statement as PostedTransactions.
   class CiticardImporter < PostedTransactionImporter
 
-    def initialize(posted_txns_csv_io)
+    def initialize(posted_txns_csv_io, account)
       csv = CSV.new(posted_txns_csv_io, headers: [:post_date, :amt, :memo, :type], skip_blanks: true)
       posted_txns = csv.readlines.map { |r| r.to_hash }
-      super(posted_txns, associated_account)
+      super(posted_txns, account)
     end
 
     private
@@ -18,11 +18,6 @@ module Service
       pt.memo = r[:memo]
       pt.type_identifier = r[:type]
     end
-    
-    def associated_account
-      # TODO: this should come from a config file
-      Account.where("name like 'Citibank MasterCard%'").first
-    end
-
+   
   end
 end

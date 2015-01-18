@@ -37,7 +37,7 @@ module Service
     end
 
     def format_errors
-      @errors.map { |data, errors| "#{data} => #{errors}" }.join("\n")
+      @errors.map { |data, errors| "#{errors}: #{data}" }.join("\n")
     end
 
     def errors?

@@ -5,7 +5,6 @@ FactoryGirl.define do
       acct_type_val 'asset'
     end
     acct_type { acct_type_val }
-    entered { Time.zone.now }
     sequence(:name) { |i| "#{acct_type_val}#{i}" }
 
     trait :asset do
@@ -27,7 +26,6 @@ FactoryGirl.define do
 
   factory :payee do
     sequence(:name) { |i| "payee#{i}" }
-    entered { Time.zone.now }
   end
 
   factory :user do
@@ -62,11 +60,19 @@ FactoryGirl.define do
     end
   end
 
+  factory :statement do
+    account
+    sequence(:stmt_date) { |n| Date.current + n }
+    balance 100.0
+  end
+
   factory :posted_transaction do
     account
-    sale_date { Date.current }
-    sequence(:amount, 100) { |n| BigDecimal.new(n, 2) }
+    # TODO: statement should have same account as posted_transaction
+    statement
     # TODO: txn entry should have same asset account as posted_transaction
     txn
+    sequence(:sale_date) { |n| Date.current + n }
+    sequence(:amount, 100) { |n| BigDecimal.new(n, 2) }
   end
 end

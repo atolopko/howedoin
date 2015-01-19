@@ -5,9 +5,9 @@ module Service
     attr_accessor :imported, :errors
 
     # posted_txns: array of hashes
-    def initialize(posted_txns, associated_account)
+    def initialize(posted_txns, statement)
       @posted_txns = posted_txns
-      @associated_account = associated_account
+      @statement = statement
     end
 
     def import(abort_on_error: true)
@@ -16,7 +16,8 @@ module Service
       PostedTransaction.transaction do
         @posted_txns.each do |record|
           pt = PostedTransaction.new
-          pt.account = @associated_account
+          pt.account = @statement.account
+          pt.statement = @statement
           begin
             populate(pt, record)
             if pt.save

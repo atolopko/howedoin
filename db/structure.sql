@@ -9,6 +9,20 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
 SET search_path = public, pg_catalog;
 
 --
@@ -95,12 +109,59 @@ CREATE FUNCTION deltxn(del_trans_id integer) RETURNS void
 
 
 --
+-- Name: reconciled_entry_immutable(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION reconciled_entry_immutable() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+if (TG_OP = 'DELETE') then
+  raise notice 'checking delete for %, %', OLD.entry_id, OLD.stmt_id;
+  if (OLD.stmt_id is not null) then
+    raise exception 'reconciled entry % cannot be deleted', OLD.entry_id;
+  end if;
+elsif (TG_OP = 'UPDATE') then
+  raise notice 'checking update for %, %, %', OLD.entry_id, OLD.stmt_id, NEW.stmt_id;
+  if (OLD.stmt_id is not null and NEW.stmt_id is not null) then
+    raise exception 'reconciled entry % cannot updated', OLD.entry_id;
+  end if;
+end if;
+return null;
+end;
+$$;
+
+
+--
 -- Name: stmts(integer); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION stmts(acct_id integer) RETURNS TABLE(stmt_id integer, stmt_date date, balance numeric)
     LANGUAGE sql
     AS $_$ select stmt_id, stmt_date, balance from bankstatement bs where bs.acct_id = $1 order by stmt_date; $_$;
+
+
+--
+-- Name: verify_zero_sum_txn(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION verify_zero_sum_txn() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+  if (TG_OP = 'DELETE' or TG_OP = 'UPDATE') then
+    if (select sum(amount) from entry e where e.trans_id = OLD.trans_id) <> 0 then
+      raise exception 'transaction % does not sum to zero', OLD.trans_id;
+    end if;
+  end if;
+  if (TG_OP = 'INSERT' or TG_OP = 'UPDATE') then
+    if (select sum(amount) from entry e where e.trans_id = NEW.trans_id) <> 0 then
+      raise exception 'transaction % does not sum to zero', NEW.trans_id;
+    end if;
+  end if; 
+  return NEW;
+end;
+$$;
 
 
 --
@@ -539,7 +600,8 @@ CREATE TABLE posted_transactions (
     memo text,
     person text,
     account_id integer NOT NULL,
-    txn_id integer
+    txn_id integer,
+    stmt_id integer NOT NULL
 );
 
 
@@ -921,6 +983,20 @@ CREATE UNIQUE INDEX unique_schema_migrations ON schema_migrations USING btree (v
 
 
 --
+-- Name: reconciled_entry_immutable; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER reconciled_entry_immutable AFTER DELETE OR UPDATE ON entry NOT DEFERRABLE INITIALLY IMMEDIATE FOR EACH ROW EXECUTE PROCEDURE reconciled_entry_immutable();
+
+
+--
+-- Name: verify_zero_sum_txn; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE CONSTRAINT TRIGGER verify_zero_sum_txn AFTER INSERT OR DELETE OR UPDATE ON entry DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE PROCEDURE verify_zero_sum_txn();
+
+
+--
 -- Name: account_budget_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1017,6 +1093,14 @@ ALTER TABLE ONLY posted_transactions
 
 
 --
+-- Name: posted_transactions_stmt_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY posted_transactions
+    ADD CONSTRAINT posted_transactions_stmt_id_fkey FOREIGN KEY (stmt_id) REFERENCES bankstatement(stmt_id);
+
+
+--
 -- Name: posted_transactions_txn_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1035,3 +1119,5 @@ INSERT INTO schema_migrations (version) VALUES ('20140125232902');
 INSERT INTO schema_migrations (version) VALUES ('20140126130704');
 
 INSERT INTO schema_migrations (version) VALUES ('20140126192451');
+
+INSERT INTO schema_migrations (version) VALUES ('20150118212327');

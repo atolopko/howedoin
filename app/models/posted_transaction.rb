@@ -1,10 +1,12 @@
 class PostedTransaction < ActiveRecord::Base
-  attr_accessible :account, :amount, :type_identifier
+  attr_accessible :account, :statement, :amount, :type_identifier
 
   belongs_to :account, primary_key: 'acct_id', foreign_key: 'account_id'
+  belongs_to :statement, primary_key: 'stmt_id', foreign_key: 'stmt_id'
   belongs_to :txn, primary_key: 'trans_id', foreign_key: 'txn_id'
 
   validates :account, presence: true
+  validates :statement, presence: true
   validates :txn_id, uniqueness: true, allow_nil: true
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true

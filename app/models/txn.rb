@@ -1,4 +1,6 @@
 class Txn < ActiveRecord::Base
+  include HasEntered
+
   self.table_name = 'transaction'
 
   attr_accessible :date, :payee
@@ -6,8 +8,6 @@ class Txn < ActiveRecord::Base
   attr_accessor :num
 
   validates :date, presence: true
-
-  before_create :set_entered
 
   belongs_to :payee, primary_key: 'payee_id'
   has_many :entries, foreign_key: 'trans_id', autosave: true
@@ -31,11 +31,5 @@ class Txn < ActiveRecord::Base
   def pretty_print
     "#{date.strftime('%F')} \"#{payee || '<none>'}\" #{amount}\n" +
       entries.map(&:pretty_print).join("\n")
-  end
-
-  private
-
-  def set_entered
-    self.entered = Time.now if new_record?
   end
 end

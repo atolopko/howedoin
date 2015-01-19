@@ -4,10 +4,10 @@ module Service
   # Imports raw transactions from a Citicard CSV downloaded statement as PostedTransactions.
   class CiticardImporter < PostedTransactionImporter
 
-    def initialize(posted_txns_csv_io, account)
+    def initialize(posted_txns_csv_io, statement)
       csv = CSV.new(posted_txns_csv_io, headers: [:post_date, :amt, :memo, :type], skip_blanks: true)
       posted_txns = csv.readlines.map { |r| r.to_hash }
-      super(posted_txns, account)
+      super(posted_txns, statement)
     end
 
     private

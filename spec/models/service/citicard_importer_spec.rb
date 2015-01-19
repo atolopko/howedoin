@@ -11,24 +11,36 @@ module Service
     }
     let(:input_file) { StringIO.new(posted_txns_data) }
     let(:account) { FactoryGirl.create(:account, name: 'Citibank MasterCard', acct_type_val: 'liability') }
-    let(:importer) { CiticardImporter.new(input_file, account) }
+    let(:statement) { FactoryGirl.create(:statement, account: account) }
+    let(:importer) { CiticardImporter.new(input_file, statement) }
 
     describe "#import" do
       describe "valid posted transactions without existing transactions" do
 
         it "persists data correctly" do
           importer.import
-          expect(PostedTransaction.all.map { |pt| pt.attributes.values_at('account_id', 'post_date', 'amount', 'memo') }).
+
+          # to help debug a failing test
+          fail("Error while running test:\n#{importer.format_errors}") if importer.errors?
+
+          expect(PostedTransaction.all.map { |pt| pt.attributes.values_at('account_id',
+                                                                          'stmt_id',
+                                                                          'post_date',
+                                                                          'amount',
+                                                                          'type_identifier',
+                                                                          'memo') }).
             to include([account.id,
+                        statement.id,
                         Date.new(2014, 12, 1),
                         BigDecimal("94.72"),
-#                         "type_identifier" => "2",
-                         "TRADER JOE'S #999  QPS SPRINGFIELD   MA"],
+                        "2",
+                        "TRADER JOE'S #999  QPS SPRINGFIELD   MA"],
                        [account.id,
+                        statement.id,
                         Date.new(2014, 12, 2),
                         BigDecimal("21.31"),
-#                         "type_identifier" => "2",
-                         "Amazon.com             AMZN.COM/BILL WA"])
+                        "2",
+                        "Amazon.com             AMZN.COM/BILL WA"])
         end
       end
       

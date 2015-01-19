@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20140126192451) do
+ActiveRecord::Schema.define(:version => 20150118212327) do
 
 # Could not dump table "account" because of following StandardError
 #   Unknown type 'acct_type_enum' for column 'acct_type'
@@ -105,6 +105,7 @@ ActiveRecord::Schema.define(:version => 20140126192451) do
     t.text     "person"
     t.integer  "account_id",                                          :null => false
     t.integer  "txn_id"
+    t.integer  "stmt_id",                                             :null => false
   end
 
   add_index "posted_transactions", ["txn_id"], :name => "posted_transactions_uniq_txn_id", :unique => true

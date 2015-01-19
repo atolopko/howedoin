@@ -4,7 +4,8 @@ module Service
   describe PostedTransactionImporter do
 
     def build_importer(records, account)
-      importer = PostedTransactionImporter.new(records, associated_account)
+      statement = FactoryGirl.create(:statement, account: account)
+      importer = PostedTransactionImporter.new(records, statement)
       # implement the abstract method
       def importer.populate(pt, r)
         # make a valid PostedTransaction
@@ -20,7 +21,7 @@ module Service
       importer
     end
 
-    let(:importer) { build_importer(records, associated_account) }
+    let(:importer) { build_importer(records, account) }
     let(:records) {
       [{ reference_identifier: "record1" },
        { reference_identifier: "record2" },
@@ -28,7 +29,7 @@ module Service
     }
     let(:input_file) { StringIO.new(posted_txns_json) }
     let(:posted_txns_json) { MultiJson.dump(records) }
-    let!(:associated_account) { FactoryGirl.create(:account, name: 'account', acct_type_val: 'liability') }
+    let!(:account) { FactoryGirl.create(:account, name: 'account', acct_type_val: 'liability') }
     let!(:unassigned_account) { FactoryGirl.create(:account, name: 'unassigned', acct_type_val: 'expense') }
     let!(:user) { FactoryGirl.create(:user) }
 
@@ -41,7 +42,7 @@ module Service
       it "persists data correctly" do
         importer.import
         expect(PostedTransaction.first.attributes).
-          to include({ "account_id" => associated_account.id,
+          to include({ "account_id" => account.id,
                        "sale_date" => Date.new(2014, 1, 1),
                        "post_date" => Date.new(2014, 1, 1),
                        "amount" => BigDecimal("1.00"),
@@ -61,7 +62,7 @@ module Service
 
       describe "duplicate posted transactions" do
         before do
-          build_importer(records, associated_account).import
+          build_importer(records, account).import
         end
 
         it "does not import the duplicate posted transaction" do

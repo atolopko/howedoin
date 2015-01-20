@@ -37,6 +37,8 @@ gem "money", "~> 5.1.1"
 # Deploy with Capistrano
 # gem 'capistrano'
 
+gem 'trollop'
+
 group :development do
   # for Guard automated testing (4 gems)
   gem "guard-rspec", "~> 2.5.2"

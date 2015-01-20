@@ -189,7 +189,8 @@ CREATE TABLE account (
     asset_subtype asset_subtype_enum,
     is_investment boolean DEFAULT false NOT NULL,
     budget_category_id integer,
-    payment_default boolean
+    payment_default boolean,
+    CONSTRAINT account_check CHECK (((payment_default = false) OR (acct_type = 'asset'::acct_type_enum)))
 );
 
 

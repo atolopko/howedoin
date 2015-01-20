@@ -12,4 +12,11 @@ class Account < ActiveRecord::Base
   def self.payment_default
     Account.where(payment_default: true).first
   end
+
+  def set_payment_default
+    transaction do
+      Account.payment_default.try { |a| a.update_attributes!(payment_default: false) }
+      update_attributes!(payment_default: true)
+    end
+  end
 end

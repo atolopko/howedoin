@@ -72,8 +72,33 @@ describe TxnBuilder do
       create
   end
 
+  it "allows missing payee" do
+    expect { 
+      TxnBuilder.new.
+      on('2014-11-02').
+      by(u).
+      using(a1).
+      buying(a2).
+      costing('11.01').
+      create
+    }.not_to raise_error
+  end
+
+  it "allows nil payee" do
+    expect { 
+      TxnBuilder.new.
+      on('2014-11-02').
+      by(u).
+      paying(nil).
+      using(a1).
+      buying(a2).
+      costing('11.01').
+      create
+    }.not_to raise_error
+  end
+
   it "raises error on missing inputs" do
     expect { TxnBuilder.new.create }.
-      to raise_error "Cannot create Txn, missing date ('on'), user ('by'), payee ('paying'), amount ('costing'), from account ('using'), to account ('buying')"
+      to raise_error "Cannot create Txn, missing date ('on'), user ('by'), amount ('costing'), from account ('using'), to account ('buying')"
   end
 end

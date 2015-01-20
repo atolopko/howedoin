@@ -43,6 +43,7 @@ class TxnBuilder
   private
 
   def resolve_model(match_value, type, attr = :name)
+    return nil if match_value.blank?
     return match_value if match_value.kind_of? type
     # TODO: better way to do wildcard matching naturally in Rails?
     return type.where("#{attr.to_s} ilike ?", match_value).first! if match_value.kind_of? String
@@ -58,7 +59,6 @@ class TxnBuilder
     missing = []
     missing << "date ('on')" unless @date
     missing << "user ('by')" unless @user
-    missing << "payee ('paying')" unless @payee
     missing << "amount ('costing')" unless @amount
     missing << "from account ('using')" unless @from
     missing << "to account ('buying')" unless @to

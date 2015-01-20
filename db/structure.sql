@@ -16,13 +16,6 @@ SET client_min_messages = warning;
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
---
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
---
-
-COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
 SET search_path = public, pg_catalog;
 
 --
@@ -195,7 +188,8 @@ CREATE TABLE account (
     is_open boolean DEFAULT true NOT NULL,
     asset_subtype asset_subtype_enum,
     is_investment boolean DEFAULT false NOT NULL,
-    budget_category_id integer
+    budget_category_id integer,
+    payment_default boolean
 );
 
 
@@ -737,6 +731,14 @@ ALTER TABLE ONLY transaction ALTER COLUMN trans_id SET DEFAULT nextval('transact
 
 
 --
+-- Name: account_payment_default_excl; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY account
+    ADD CONSTRAINT account_payment_default_excl EXCLUDE USING btree (payment_default WITH =) WHERE ((payment_default = true));
+
+
+--
 -- Name: account_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -1121,3 +1123,5 @@ INSERT INTO schema_migrations (version) VALUES ('20140126130704');
 INSERT INTO schema_migrations (version) VALUES ('20140126192451');
 
 INSERT INTO schema_migrations (version) VALUES ('20150118212327');
+
+INSERT INTO schema_migrations (version) VALUES ('20150120012208');

@@ -49,4 +49,14 @@ describe Txn do
     end
   end
 
+  describe "#pretty_print" do
+    it "returns a human readable string" do
+      pending
+    end
+
+    it "shows '<none>' for missing payee" do
+      pending
+    end
+  end
+
 end

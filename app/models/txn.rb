@@ -29,7 +29,7 @@ class Txn < ActiveRecord::Base
   end
 
   def pretty_print
-    "#{date.strftime('%F')} \"#{payee || '<none>'}\" #{amount}\n" +
+    "#{date.strftime('%F')} \"#{payee.try(:name) || '<none>'}\" #{amount}\n" +
       entries.map(&:pretty_print).join("\n")
   end
 end

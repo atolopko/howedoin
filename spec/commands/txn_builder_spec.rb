@@ -60,4 +60,20 @@ describe TxnBuilder do
       costing('11.01').
       create
   end
+
+  it "uses default payment account" do
+    a1.update_attributes!(payment_default: true)
+    assert_matches TxnBuilder.new.
+      on('2014-11-02').
+      by(u).
+      paying(p).
+      buying(a2).
+      costing('11.01').
+      create
+  end
+
+  it "raises error on missing inputs" do
+    expect { TxnBuilder.new.create }.
+      to raise_error "Cannot create Txn, missing date ('on'), user ('by'), payee ('paying'), amount ('costing'), from account ('using'), to account ('buying')"
+  end
 end

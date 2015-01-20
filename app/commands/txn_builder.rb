@@ -1,5 +1,7 @@
 class TxnBuilder
   def create
+    set_defaults
+    validate
     t = Txn.new(date: @date)
     t.payee = @payee
     t.entries.build(account: @from, user: @user, amount: -1 * @amount)
@@ -46,6 +48,21 @@ class TxnBuilder
     return type.where("#{attr.to_s} ilike ?", match_value).first! if match_value.kind_of? String
     return type.find(match_value) if match_value.kind_of? Fixnum
     raise "Cannot parse #{type} '#{match_value}' (#{match_value.class})"
+  end
+
+  def set_defaults
+    @from ||= Account.payment_default
+  end
+
+  def validate
+    missing = []
+    missing << "date ('on')" unless @date
+    missing << "user ('by')" unless @user
+    missing << "payee ('paying')" unless @payee
+    missing << "amount ('costing')" unless @amount
+    missing << "from account ('using')" unless @from
+    missing << "to account ('buying')" unless @to
+    raise "Cannot create Txn, missing #{missing.join(', ')}" if missing.present?
   end
 
 end

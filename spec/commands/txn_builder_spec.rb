@@ -201,5 +201,18 @@ describe TxnBuilder do
         create
       expect(t.entries[1].user).to eq u2
     end
- end
+  end
+
+  it "can only be used once to create a Txn" do
+    tb = TxnBuilder.new.
+      on('2014-11-02').
+      by('me').
+      paying('market').
+      using('bank').
+      buying('food').
+      costing('11.01')
+    tb.create
+    expect { tb.create }.to raise_error "Already created Txn with this TxnBuilder"
+  end
+
 end

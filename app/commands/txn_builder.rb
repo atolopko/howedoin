@@ -5,11 +5,13 @@ class TxnBuilder
   end
 
   def create
+    raise "Already created Txn with this TxnBuilder" if @locked
     set_defaults
     validate
     build_entry
     add_balancing_entry
     @t.save!
+    @locked = true
     @t
   end
 

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe TxnBuilder do
-  let!(:u) { FactoryGirl.create(:user, fullname: 'me', nickname: 'me') }
+  let!(:u) { FactoryGirl.create(:user, fullname: 'me', nickname: 'me', payment_default: true) }
   let!(:p) { FactoryGirl.create(:payee, name: 'market') }
   let!(:a1) { FactoryGirl.create(:account, :asset, name: 'bank') }
   let!(:a2) { FactoryGirl.create(:account, :expense, name: 'food') }
@@ -83,6 +83,20 @@ describe TxnBuilder do
         buying(a2).
         costing('11.01').
         create
+    end
+
+    it "uses default payment user for balancing entry" do
+      u2 = FactoryGirl.create(:user, fullname: 'u2', nickname: 'u2')
+      u2.set_payment_default
+      t = TxnBuilder.new.
+        on('2014-11-02').
+        by(u).
+        using(a1).
+        paying(p).
+        buying(a2).
+        costing('11.01').
+        create
+      expect(t.entries.last.user).to eq u2
     end
 
     it "uses current date" do

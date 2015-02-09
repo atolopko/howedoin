@@ -77,7 +77,7 @@ class TxnBuilder
 
   def add_balancing_entry
     total = @t.entries.reduce(0) { |t,e| t += e.amount }
-    @t.entries.build(account: @from, num: @num, user: @user, amount: -total)
+    @t.entries.build(account: @from, num: @num, user: User.payment_default, amount: -total)
   end
 
   def set_defaults

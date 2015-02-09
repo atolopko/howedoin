@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150120012208) do
+ActiveRecord::Schema.define(:version => 20150209022050) do
 
 # Could not dump table "account" because of following StandardError
 #   Unknown type 'acct_type_enum' for column 'acct_type'
@@ -53,12 +53,14 @@ ActiveRecord::Schema.define(:version => 20150120012208) do
   add_index "entry", ["num"], :name => "entry_num"
 
   create_table "fuser", :primary_key => "user_id", :force => true do |t|
-    t.string "fullname", :limit => 50, :null => false
-    t.string "nickname", :limit => 4,  :null => false
+    t.string  "fullname",        :limit => 50,                    :null => false
+    t.string  "nickname",        :limit => 4,                     :null => false
+    t.boolean "payment_default",               :default => false, :null => false
   end
 
   add_index "fuser", ["fullname"], :name => "user_fullname", :unique => true
   add_index "fuser", ["nickname"], :name => "user_nickname", :unique => true
+  add_index "fuser", ["payment_default"], :name => "fuser_payment_default_excl"
 
 # Could not dump table "gas" because of following StandardError
 #   Unknown type 'vehicle' for column 'vehicle'

@@ -189,8 +189,8 @@ CREATE TABLE account (
     asset_subtype asset_subtype_enum,
     is_investment boolean DEFAULT false NOT NULL,
     budget_category_id integer,
-    payment_default boolean,
-    CONSTRAINT account_check CHECK (((payment_default = false) OR (acct_type = 'asset'::acct_type_enum)))
+    payment_default boolean DEFAULT false NOT NULL,
+    CONSTRAINT account_check CHECK (((payment_default = false) OR (acct_type = ANY (ARRAY['asset'::acct_type_enum, 'liability'::acct_type_enum]))))
 );
 
 
@@ -347,7 +347,8 @@ ALTER SEQUENCE entry_entry_id_seq OWNED BY entry.entry_id;
 CREATE TABLE fuser (
     user_id integer NOT NULL,
     fullname character varying(50) NOT NULL,
-    nickname character varying(4) NOT NULL
+    nickname character varying(4) NOT NULL,
+    payment_default boolean DEFAULT false NOT NULL
 );
 
 
@@ -780,6 +781,14 @@ ALTER TABLE ONLY entry
 
 
 --
+-- Name: fuser_payment_default_excl; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY fuser
+    ADD CONSTRAINT fuser_payment_default_excl EXCLUDE USING btree (payment_default WITH =) WHERE ((payment_default = true));
+
+
+--
 -- Name: fuser_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -1126,3 +1135,5 @@ INSERT INTO schema_migrations (version) VALUES ('20140126192451');
 INSERT INTO schema_migrations (version) VALUES ('20150118212327');
 
 INSERT INTO schema_migrations (version) VALUES ('20150120012208');
+
+INSERT INTO schema_migrations (version) VALUES ('20150209022050');

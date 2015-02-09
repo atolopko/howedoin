@@ -5,7 +5,6 @@ describe Account do
   let!(:account) { FactoryGirl.create(:account) }
 
   describe ".payment_default" do
-
     it "returns nil if no row with payment_default flag set" do
       expect(Account.payment_default).to be_nil
     end
@@ -36,6 +35,5 @@ describe Account do
         account.set_payment_default rescue nil
       }.not_to change { Account.payment_default }.from(payment_default_account)
     end
-
   end
 end

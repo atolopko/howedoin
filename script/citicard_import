@@ -1,11 +1,14 @@
 #!/usr/bin/env rails runner
 
+opts = Trollop.options do
+  opt :balance, "Statement ending balance", short: 'b', required: true
+  opt :date, "Statement date", short: 'd', type: :string, required: true
+end
+
 begin
   Account.transaction do
-    balance = BigDecimal.new(ARGV.pop)
-    stmt_date = Date.parse(ARGV.pop)
     account = Account.where("name like 'Citibank MasterCard%'").last!
-    statement = account.statements.create!(stmt_date: stmt_date, balance: balance)
+    statement = account.statements.create!(stmt_date: options.date, balance: options.balance)
     importer = Service::CiticardImporter.new(ARGF, statement)
     importer.import
     if importer.errors?

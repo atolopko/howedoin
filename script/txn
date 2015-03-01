@@ -1,0 +1,20 @@
+#!/usr/bin/env rails runner
+
+opts = Trollop.options do
+  opt :sale_date, "Sale date", short: 'd', default: Date.today.to_s
+  opt :amount, "Amount", short: 'a', type: :string, required: true
+  opt :payee, "Payee", short: 'p', type: :string
+  opt :to_account, "To Account (buying)", short: 't', type: :string, required: true
+  opt :from_account, "From Account (using)", short: 'f', type: :string
+  opt :user, "User", short: 'u', type: :string, default: 'both'
+end
+
+puts TxnBuilder.new.
+  on(opts.sale_date).
+  by(opts.user).
+  paying(opts.payee).
+  costing(opts.amount).
+  buying(opts.to_account).
+  using(opts.from_account).
+  create.
+  pretty_print

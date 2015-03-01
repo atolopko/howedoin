@@ -14,8 +14,9 @@ module Importers
   class CiticardRecentActivity < PostedTransactionImporter
 
     def initialize(posted_txns_csv, statement)
+      csv_str = to_s_with_normalized_newlines(posted_txns_csv)
       posted_txns = []
-      CSV.foreach(posted_txns_csv, headers: true, skip_blanks: true) do |row|
+      CSV.new(csv_str, headers: true, skip_blanks: true).each do |row|
         posted_txns << row.to_hash if row['Status'] == 'Cleared'
       end
       super(posted_txns, statement)
@@ -29,6 +30,11 @@ module Importers
       pt.amount = BigDecimal.new(amount.gsub(/[,]/, '')) if amount
       pt.memo = r['Description']
     end
-   
+
+    def to_s_with_normalized_newlines(file)
+      csv_str = File.new(file).read
+      csv_str.encode(universal_newline: true)
+    end
+
   end
 end

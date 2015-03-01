@@ -1,12 +1,13 @@
 require 'spec_helper'
 
 module Importers
-  describe CiticardImporter do
+  describe CiticardHistoricalStatement do
 
     let(:posted_txns_data) {
       <<-CSV
 "12/01/2014","$94.72","TRADER JOE'S #999  QPS SPRINGFIELD   MA","2"
 "12/02/2014","$21.31","Amazon.com             AMZN.COM/BILL WA","2"
+"12/03/2014","$-1000.01","ELECTRONIC PAYMENT-THANK YOU","1"
       CSV
     }
     let(:csv_file) {
@@ -18,7 +19,7 @@ module Importers
     let(:csv_filename) { csv_file.path }
     let(:account) { FactoryGirl.create(:account, name: 'Citibank MasterCard', acct_type_val: 'liability') }
     let(:statement) { FactoryGirl.create(:statement, account: account) }
-    let(:importer) { CiticardImporter.new(csv_filename, statement) }
+    let(:importer) { CiticardHistoricalStatement.new(csv_filename, statement) }
 
     after do
       csv_file.unlink
@@ -50,7 +51,14 @@ module Importers
                         Date.new(2014, 12, 2),
                         BigDecimal("21.31"),
                         "2",
-                        "Amazon.com             AMZN.COM/BILL WA"])
+                        "Amazon.com             AMZN.COM/BILL WA"],
+                       [account.id,
+                        statement.id,
+                        Date.new(2014, 12, 3),
+                        BigDecimal("-1000.01"),
+                        "1",
+                        "ELECTRONIC PAYMENT-THANK YOU"
+                        ])
         end
       end
       

@@ -7,6 +7,7 @@ options = Trollop.options do
   opt :account_name, "Account name (SQL wildcard)", short: 'a', type: :string, required: true
   opt :importer, "Importer class name", short: 'i', type: :string, required: true
   opt :statement_file, "Statement file to import", short: 'f', type: :string, required: true
+  opt :debug, "Show stack trace on error"
 end
 
 def importer_class(importer_class_name)
@@ -30,6 +31,6 @@ begin
     puts("Imported #{importer.imported.size} transactions")
   end
 rescue StandardError => e
-raise e
-  ap e
+  raise e if options.debug
+  ap e.message
 end

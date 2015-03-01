@@ -1,4 +1,4 @@
-module Service
+module Importers
   # Imports raw transactions from a financial service account as
   # PostedTransactions.
   class PostedTransactionImporter

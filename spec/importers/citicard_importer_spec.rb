@@ -1,18 +1,28 @@
 require 'spec_helper'
 
-module Service
+module Importers
   describe CiticardImporter do
 
     let(:posted_txns_data) {
       <<-CSV
-"2014-12-01","$94.72","TRADER JOE'S #999  QPS SPRINGFIELD   MA","2"
-"2014-12-02","$21.31","Amazon.com             AMZN.COM/BILL WA","2"
+"12/01/2014","$94.72","TRADER JOE'S #999  QPS SPRINGFIELD   MA","2"
+"12/02/2014","$21.31","Amazon.com             AMZN.COM/BILL WA","2"
       CSV
     }
-    let(:input_file) { StringIO.new(posted_txns_data) }
+    let(:csv_file) {
+      f = Tempfile.new('posted_txns_data')
+      f.write(posted_txns_data)
+      f.close
+      f
+    }
+    let(:csv_filename) { csv_file.path }
     let(:account) { FactoryGirl.create(:account, name: 'Citibank MasterCard', acct_type_val: 'liability') }
     let(:statement) { FactoryGirl.create(:statement, account: account) }
-    let(:importer) { CiticardImporter.new(input_file, statement) }
+    let(:importer) { CiticardImporter.new(csv_filename, statement) }
+
+    after do
+      csv_file.unlink
+    end
 
     describe "#import" do
       describe "valid posted transactions without existing transactions" do

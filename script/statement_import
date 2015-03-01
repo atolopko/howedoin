@@ -1,0 +1,35 @@
+#!/usr/bin/env rails runner
+
+
+options = Trollop.options do
+  opt :balance, "Statement ending balance", short: 'b', type: :string, required: true
+  opt :statement_date, "Statement date", short: 'd', type: :string, required: true
+  opt :account_name, "Account name (SQL wildcard)", short: 'a', type: :string, required: true
+  opt :importer, "Importer class name", short: 'i', type: :string, required: true
+  opt :statement_file, "Statement file to import", short: 'f', type: :string, required: true
+end
+
+def importer_class(importer_class_name)
+  Rails.application.eager_load!
+  Importers.const_get importer_class_name
+end
+
+
+begin
+  Account.transaction do
+    account = Account.where("name like ?", options.account_name).last!
+    statement = account.statements.create!(stmt_date: options.statement_date, balance: options.balance)
+    importer = importer_class(options.importer).new(options.statement_file, statement)
+    importer.import
+    if importer.errors?
+      STDERR.puts "Found #{importer.errors.size} errors during import:\n"
+      STDERR.puts importer.format_errors
+      STDERR.puts "Imported #{importer.imported.size} transactions"
+      raise ActiveRecord::Rollback
+    end
+    puts("Imported #{importer.imported.size} transactions")
+  end
+rescue StandardError => e
+raise e
+  ap e
+end

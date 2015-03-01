@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-module Service
+module Importers
   describe PostedTransactionImporter do
 
     def build_importer(records, account)

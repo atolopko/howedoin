@@ -1,8 +1,8 @@
 require 'csv'
-require 'posted_transaction_importer'
+require 'parser'
 
 module Importers
-  # Imports raw transactions from a Citicard CSV downloaded
+  # Parses raw transactions from a Citicard CSV downloaded
   # transaction file as PostedTransactions. Note that there are two
   # pages from which account activity can be download from the web
   # site: 1) From the Account Details page and 2) From the Statement
@@ -11,24 +11,25 @@ module Importers
   # date. However, method 2 is required for importing historical date
   # (more than 6 months old) since that data is only available via the
   # Statement Downloads page.
-  class CiticardRecentActivity < PostedTransactionImporter
+  class CiticardRecentActivityParser < Parser
 
-    def initialize(posted_txns_csv, statement)
-      csv_str = to_s_with_normalized_newlines(posted_txns_csv)
-      posted_txns = []
+    def posted_txns
+      csv_str = to_s_with_normalized_newlines(@posted_txns_csv)
       CSV.new(csv_str, headers: true, skip_blanks: true).each do |row|
-        posted_txns << row.to_hash if row['Status'] == 'Cleared'
+        @posted_txns << populate(row.to_hash) if row['Status'] == 'Cleared'
       end
-      super(posted_txns, statement)
+      @posted_txns
     end
 
     private
 
-    def populate(pt, r)
+    def populate(r)
+      pt = PostedTransaction.new
       pt.sale_date = Date.strptime r['Date'], "%m/%d/%Y"
       amount = r['Debit'].present? ? r['Debit'] : "-#{r['Credit']}"
       pt.amount = BigDecimal.new(amount.gsub(/[,]/, '')) if amount
       pt.memo = r['Description']
+      pt
     end
 
     def to_s_with_normalized_newlines(file)

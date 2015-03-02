@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 module Importers
-  describe CiticardHistoricalStatement do
+  describe CiticardHistoricalStatementParser do
 
     let(:posted_txns_data) {
       <<-CSV
@@ -11,57 +11,38 @@ module Importers
       CSV
     }
     let(:csv_file) {
-      f = Tempfile.new('posted_txns_data')
+      f = Tempfile.new('2014-12-31.')
       f.write(posted_txns_data)
       f.close
       f
     }
     let(:csv_filename) { csv_file.path }
-    let(:account) { FactoryGirl.create(:account, name: 'Citibank MasterCard', acct_type_val: 'liability') }
-    let(:statement) { FactoryGirl.create(:statement, account: account) }
-    let(:importer) { CiticardHistoricalStatement.new(csv_filename, statement) }
+    let(:parser) { CiticardHistoricalStatementParser.new(csv_filename) }
 
     after do
       csv_file.unlink
     end
 
-    describe "#import" do
-      describe "valid posted transactions without existing transactions" do
-
-        it "persists data correctly" do
-          importer.import
-
-          # to help debug a failing test
-          fail("Error while running test:\n#{importer.format_errors}") if importer.errors?
-
-          expect(PostedTransaction.all.map { |pt| pt.attributes.values_at('account_id',
-                                                                          'stmt_id',
-                                                                          'post_date',
-                                                                          'amount',
-                                                                          'type_identifier',
-                                                                          'memo') }).
-            to include([account.id,
-                        statement.id,
-                        Date.new(2014, 12, 1),
-                        BigDecimal("94.72"),
-                        "2",
-                        "TRADER JOE'S #999  QPS SPRINGFIELD   MA"],
-                       [account.id,
-                        statement.id,
-                        Date.new(2014, 12, 2),
-                        BigDecimal("21.31"),
-                        "2",
-                        "Amazon.com             AMZN.COM/BILL WA"],
-                       [account.id,
-                        statement.id,
-                        Date.new(2014, 12, 3),
-                        BigDecimal("-1000.01"),
-                        "1",
-                        "ELECTRONIC PAYMENT-THANK YOU"
-                        ])
-        end
+    describe "#posted_txns" do
+      it "persists data correctly" do
+        expect(parser.posted_txns.map { |pt| pt.attributes.values_at('post_date',
+                                                                     'amount',
+                                                                     'type_identifier',
+                                                                     'memo') }).
+          to include([Date.new(2014, 12, 1),
+                      BigDecimal("94.72"),
+                      "2",
+                      "TRADER JOE'S #999  QPS SPRINGFIELD   MA"],
+                     [Date.new(2014, 12, 2),
+                      BigDecimal("21.31"),
+                      "2",
+                      "Amazon.com             AMZN.COM/BILL WA"],
+                     [Date.new(2014, 12, 3),
+                      BigDecimal("-1000.01"),
+                      "1",
+                      "ELECTRONIC PAYMENT-THANK YOU"])
       end
-      
     end
+    
   end
 end

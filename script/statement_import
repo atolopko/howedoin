@@ -2,26 +2,30 @@
 
 
 options = Trollop.options do
-  opt :balance, "Statement ending balance", short: 'b', type: :string, required: true
-  opt :statement_date, "Statement date", short: 'd', type: :string, required: true
+  opt :ending_balance, "Statement ending balance", short: 'b', type: :string, required: false
+  opt :statement_date, "Statement date", short: 'd', type: :string, required: false
   opt :account_name, "Account name (SQL wildcard)", short: 'a', type: :string, required: true
-  opt :importer, "Importer class name", short: 'i', type: :string, required: true
+  opt :parser, "Parser class name", short: 'p', type: :string, required: true
   opt :statement_file, "Statement file to import", short: 'f', type: :string, required: true
   opt :debug, "Show stack trace on error"
 end
 
-def importer_class(importer_class_name)
+def parser_class(parser_class_name)
   Rails.application.eager_load!
-  Importers.const_get importer_class_name
+  Importers.const_get parser_class_name
 end
-
 
 begin
   Account.transaction do
-    account = Account.where("name like ?", options.account_name).last!
-    statement = account.statements.create!(stmt_date: options.statement_date, balance: options.balance)
-    importer = importer_class(options.importer).new(options.statement_file, statement)
-    importer.import
+    parser_class = parser_class(options.parser)
+    parser = parser_class.new(options.statement_file)
+    ending_balance = options.ending_balance || parser.ending_balance
+    raise "#{parser_class} cannot infer ending balance and --ending-balance option missing" if ending_balance.blank?
+    statement_date = options.statement_date || parser.statement_date
+    raise "#{parser_class} cannot infer statement_date and --statement_date option missing" if statement_date.blank?
+
+    importer = Importers::PostedTransactionImporter.new(options.account_name, statement_date, ending_balance)
+    importer.import(parser.posted_txns)
     if importer.errors?
       STDERR.puts "Found #{importer.errors.size} errors during import:\n"
       STDERR.puts importer.format_errors

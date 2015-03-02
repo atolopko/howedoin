@@ -5,7 +5,6 @@ module Importers
 
     def initialize(posted_txns_csv)
       @posted_txns_csv = posted_txns_csv
-      @posted_txns = []
     end
 
     def posted_txns

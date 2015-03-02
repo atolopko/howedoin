@@ -16,13 +16,18 @@ module Importers
     HEADERS = [:post_date, :amt, :memo, :type]
 
     def posted_txns
-      CSV.foreach(@posted_txns_csv, headers: HEADERS, skip_blanks: true) do |row|
-        @posted_txns << populate(row.to_hash)
-      end
-      @posted_txns
+      @posted_txns ||= parse
     end
 
     private
+
+    def parse
+      posted_txns = []
+      CSV.foreach(@posted_txns_csv, headers: HEADERS, skip_blanks: true) do |row|
+        posted_txns << populate(row.to_hash)
+      end
+      posted_txns
+    end
 
     def populate(r)
       pt = PostedTransaction.new

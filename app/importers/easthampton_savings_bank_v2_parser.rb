@@ -5,17 +5,24 @@ module Importers
   class EasthamptonSavingsBankV2Parser < Parser
 
     def posted_txns
-      CSV.foreach(@posted_txns_csv, skip_blanks: true, headers: true) do |row|
-        @posted_txns << populate(row.to_hash)
-      end
-      @posted_txns
+      @posted_txn ||= parse
     end
 
     def ending_balance
-      to_amount @posted_txns.last['Ending Balance']      
+      posted_txns
+      @ending_balance
     end
 
     private
+
+    def parse
+      posted_txns = []
+      CSV.foreach(@posted_txns_csv, skip_blanks: true, headers: true) do |row|
+        posted_txns << populate(row.to_hash)
+        @ending_balance = to_amount row['Ending Balance']      
+      end
+      posted_txns
+    end
 
     def populate(r)
       pt = PostedTransaction.new

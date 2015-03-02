@@ -7,13 +7,24 @@ module Importers
     HEADERS = [:post_date, :empty, :memo, :amt, :balance]
 
     def posted_txns
-      CSV.foreach(@posted_txns_csv, headers: HEADERS, skip_blanks: true) do |row|
-        @posted_txns << populate(row.to_hash) unless row[:memo] == "Starting Balance"
-      end
-      @posted_txns
+      @posted_txn ||= parse
+    end
+
+    def ending_balance
+      posted_txns
+      @ending_balance
     end
 
     private
+
+    def parse
+      posted_txns = []
+      CSV.foreach(@posted_txns_csv, headers: HEADERS, skip_blanks: true) do |row|
+        posted_txns << populate(row.to_hash) unless row[:memo] == "Starting Balance"
+        @ending_balance = to_amount row[:balance]
+      end
+      posted_txns
+    end
 
     def populate(r)
       pt = PostedTransaction.new

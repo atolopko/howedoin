@@ -14,14 +14,19 @@ module Importers
   class CiticardRecentActivityParser < Parser
 
     def posted_txns
-      csv_str = to_s_with_normalized_newlines(@posted_txns_csv)
-      CSV.new(csv_str, headers: true, skip_blanks: true).each do |row|
-        @posted_txns << populate(row.to_hash) if row['Status'] == 'Cleared'
-      end
-      @posted_txns
+      @posted_txns ||= parse
     end
 
     private
+
+    def parse
+      posted_txns = []
+      csv_str = to_s_with_normalized_newlines(@posted_txns_csv)
+      CSV.new(csv_str, headers: true, skip_blanks: true).each do |row|
+        posted_txns << populate(row.to_hash) if row['Status'] == 'Cleared'
+      end
+      posted_txns
+    end
 
     def populate(r)
       pt = PostedTransaction.new

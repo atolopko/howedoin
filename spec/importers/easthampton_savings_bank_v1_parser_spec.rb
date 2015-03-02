@@ -36,5 +36,12 @@ module Importers
                       "ATM Withdrawal"])
       end
     end
+
+    describe "#ending_balance" do
+      it "infers ending balance from input file data" do
+        expect(parser.ending_balance).to eq BigDecimal('900.00')
+      end
+    end
+
   end
 end

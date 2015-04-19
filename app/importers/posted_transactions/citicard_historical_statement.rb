@@ -1,7 +1,6 @@
 require 'csv'
-require 'parser'
 
-module Importers
+module PostedTransactions
   # Parses raw transactions from a Citicard CSV downloaded
   # transaction file as PostedTransactions. Note that there are two
   # pages from which account activity can be download from the web
@@ -37,6 +36,6 @@ module Importers
       pt.type_identifier = r[:type]
       pt
     end
-   
+    
   end
 end

@@ -1,7 +1,6 @@
 require 'csv'
-require 'parser'
 
-module Importers
+module PostedTransactions
   class EasthamptonSavingsBankV1Parser < Parser
 
     HEADERS = [:post_date, :empty, :memo, :amt, :balance]

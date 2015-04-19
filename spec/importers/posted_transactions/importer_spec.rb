@@ -1,7 +1,7 @@
 require 'spec_helper'
 
-module Importers
-  describe PostedTransactionImporter do
+module PostedTransactions
+  describe Importer do
 
     def build_posted_txns
       [{ reference_identifier: "record1" },
@@ -21,7 +21,7 @@ module Importers
     end
 
     let(:posted_txns) { build_posted_txns }
-    let(:importer) { PostedTransactionImporter.new("account", Date.new(2015, 01, 01), BigDecimal("100.00")) }
+    let(:importer) { Importer.new("account", Date.new(2015, 01, 01), BigDecimal("100.00")) }
     let!(:account) { FactoryGirl.create(:account, name: 'account', acct_type_val: 'liability') }
     let!(:user) { FactoryGirl.create(:user) }
 
@@ -54,7 +54,7 @@ module Importers
 
       describe "duplicate posted transactions" do
         before do
-          PostedTransactionImporter.
+          Importer.
             new("account", Date.new(2014, 12, 31), BigDecimal("100.00")).
             import(build_posted_txns)
         end
@@ -71,7 +71,7 @@ module Importers
 
       describe "posted transactions already persisted" do
         before do
-          PostedTransactionImporter.
+          Importer.
             new("account", Date.new(2014, 12, 31), BigDecimal("100.00")).
             import(posted_txns)
         end

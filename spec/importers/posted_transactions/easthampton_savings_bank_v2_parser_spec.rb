@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-module Importers
+module PostedTransactions
   describe EasthamptonSavingsBankV2Parser do
 
     let(:posted_txns_data) {

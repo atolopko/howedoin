@@ -1,6 +1,5 @@
-module Importers
-  # Imports the provided PostedTransactions (initialized, but not persisted) into a new Statement
-  class PostedTransactionImporter
+module PostedTransactions
+  class Importer
     attr_accessor :statement, :imported, :errors
 
     def initialize(account_name, statement_date, ending_balance)

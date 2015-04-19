@@ -1,6 +1,6 @@
 require 'csv'
 
-module Importers
+module PostedTransactions
   class Parser
 
     def initialize(posted_txns_csv)
@@ -15,7 +15,7 @@ module Importers
       m = @posted_txns_csv.match /(\d{4})-(\d{2})-(\d{2})/
       Date.new(m[1].to_i, m[2].to_i, m[3].to_i) if m
     end
-   
+    
     def ending_balance
       nil
     end

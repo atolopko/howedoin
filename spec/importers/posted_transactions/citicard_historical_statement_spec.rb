@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-module Importers
+module PostedTransactions
   describe CiticardHistoricalStatementParser do
 
     let(:posted_txns_data) {

@@ -1,7 +1,6 @@
 require 'csv'
-require 'parser'
 
-module Importers
+module PostedTransactions
   class EasthamptonSavingsBankV2Parser < Parser
 
     def posted_txns
@@ -34,6 +33,6 @@ module Importers
       pt.memo = r['Transaction Description']
       pt
     end
-   
+    
   end
 end

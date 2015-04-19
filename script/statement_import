@@ -1,6 +1,5 @@
 #!/usr/bin/env rails runner
 
-
 options = Trollop.options do
   opt :ending_balance, "Statement ending balance", short: 'b', type: :string, required: false
   opt :statement_date, "Statement date", short: 'd', type: :string, required: false
@@ -12,7 +11,7 @@ end
 
 def parser_class(parser_class_name)
   Rails.application.eager_load!
-  Importers.const_get parser_class_name
+  PostedTransactions.const_get parser_class_name
 end
 
 begin
@@ -24,7 +23,7 @@ begin
     statement_date = options.statement_date || parser.statement_date
     raise "#{parser_class} cannot infer statement_date and --statement_date option missing" if statement_date.blank?
 
-    importer = Importers::PostedTransactionImporter.new(options.account_name, statement_date, ending_balance)
+    importer = PostedTransactions::Importer.new(options.account_name, statement_date, ending_balance)
     importer.import(parser.posted_txns)
     if importer.errors?
       STDERR.puts "Found #{importer.errors.size} errors during import:\n"

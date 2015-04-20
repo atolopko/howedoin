@@ -2,7 +2,7 @@ module Service
   class DefaultTxnFactory
     def initialize(to_account = nil, user = nil, payee = nil)
       @to_account = to_account || Account.where(name: 'unassigned', acct_type: 'expense').first
-      @user = user || User.first
+      @user = user || User.payment_default
       @payee = payee
     end
 

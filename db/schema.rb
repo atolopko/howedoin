@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150209022050) do
+ActiveRecord::Schema.define(:version => 20150607113403) do
 
 # Could not dump table "account" because of following StandardError
 #   Unknown type 'acct_type_enum' for column 'acct_type'
@@ -121,5 +121,20 @@ ActiveRecord::Schema.define(:version => 20150209022050) do
 
   add_index "transaction", ["date"], :name => "trans_date"
   add_index "transaction", ["payee_id"], :name => "trans_payee"
+
+  create_table "txn_importer_factories", :force => true do |t|
+    t.text     "memo_regexp"
+    t.integer  "user_id",         :null => false
+    t.integer  "payee_id",        :null => false
+    t.integer  "from_account_id", :null => false
+    t.integer  "to_account_id",   :null => false
+    t.datetime "created_at",      :null => false
+    t.datetime "updated_at",      :null => false
+  end
+
+  add_index "txn_importer_factories", ["from_account_id"], :name => "index_txn_importer_factories_on_from_account_id"
+  add_index "txn_importer_factories", ["payee_id"], :name => "index_txn_importer_factories_on_payee_id"
+  add_index "txn_importer_factories", ["to_account_id"], :name => "index_txn_importer_factories_on_to_account_id"
+  add_index "txn_importer_factories", ["user_id"], :name => "index_txn_importer_factories_on_user_id"
 
 end

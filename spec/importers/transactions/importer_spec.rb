@@ -3,9 +3,12 @@ require 'spec_helper'
 module Transactions
   describe Importer do
 
-    let(:pt) { create(:posted_transaction) }
+    let(:pt) { create(:posted_transaction, memo: "memo") }
     let(:importer) { Importer.new(pt) }
-
+    let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                         from_account: pt.account,
+                                         memo_regexp: 'memo') }
+    
     describe "PostedTransaction is already linked to a Txn" do
       let!(:pt) { create(:posted_transaction,
                          txn: create(:txn)) }
@@ -44,6 +47,45 @@ module Transactions
         expect(pt.reload.txn).to eq importer.txn
       end
     end
+
+    describe "no matching factory" do
+      let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                           from_account: pt.account,
+                                           memo_regexp: 'more_specific_memo') }
+      it "does not create a new Txn" do
+        importer.import
+        expect(importer.txn).not_to be_present
+      end
+      
+      it "does not create a new Txn" do
+        expect { importer.import }.not_to change { Txn.count }
+      end
+
+      it "does not change link" do
+        expect { importer.import }.not_to change { pt.txn }
+      end
+    end
+
+    describe "ambiguous matching factory" do
+      before do
+        create(:txn_importer_factory,
+               from_account: pt.account,
+               memo_regexp: 'emo')
+      end
+
+      it "does not create a new Txn" do
+        importer.import
+        expect(importer.txn).not_to be_present
+      end
+      
+      it "does not create a new Txn" do
+        expect { importer.import }.not_to change { Txn.count }
+      end
+
+      it "does not change link" do
+        expect { importer.import }.not_to change { pt.txn }
+      end
+    end
+
   end
 end
-

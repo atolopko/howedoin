@@ -70,9 +70,15 @@ FactoryGirl.define do
     account
     # TODO: statement should have same account as posted_transaction
     statement
-    # TODO: txn entry should have same asset account as posted_transaction
-    txn
     sequence(:sale_date) { |n| Date.current + n }
     sequence(:amount, 100) { |n| BigDecimal.new(n, 2) }
+  end
+
+  factory :txn_importer_factory do
+    association :from_account, factory: :account
+    association :to_account, factory: :account
+    payee
+    user
+    memo_regexp '.*'
   end
 end

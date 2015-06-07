@@ -649,6 +649,41 @@ ALTER SEQUENCE transaction_trans_id_seq OWNED BY transaction.trans_id;
 
 
 --
+-- Name: txn_importer_factories; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE txn_importer_factories (
+    id integer NOT NULL,
+    memo_regexp text,
+    user_id integer NOT NULL,
+    payee_id integer NOT NULL,
+    from_account_id integer NOT NULL,
+    to_account_id integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: txn_importer_factories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE txn_importer_factories_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: txn_importer_factories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE txn_importer_factories_id_seq OWNED BY txn_importer_factories.id;
+
+
+--
 -- Name: acct_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -730,6 +765,13 @@ ALTER TABLE ONLY posted_transactions ALTER COLUMN id SET DEFAULT nextval('posted
 --
 
 ALTER TABLE ONLY transaction ALTER COLUMN trans_id SET DEFAULT nextval('transaction_trans_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY txn_importer_factories ALTER COLUMN id SET DEFAULT nextval('txn_importer_factories_id_seq'::regclass);
 
 
 --
@@ -877,6 +919,14 @@ ALTER TABLE ONLY transaction
 
 
 --
+-- Name: txn_importer_factories_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY txn_importer_factories
+    ADD CONSTRAINT txn_importer_factories_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: uniq_acct_date; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -950,6 +1000,34 @@ CREATE INDEX entry_amt ON entry USING btree (amount);
 --
 
 CREATE INDEX entry_num ON entry USING btree (num);
+
+
+--
+-- Name: index_txn_importer_factories_on_from_account_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_txn_importer_factories_on_from_account_id ON txn_importer_factories USING btree (from_account_id);
+
+
+--
+-- Name: index_txn_importer_factories_on_payee_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_txn_importer_factories_on_payee_id ON txn_importer_factories USING btree (payee_id);
+
+
+--
+-- Name: index_txn_importer_factories_on_to_account_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_txn_importer_factories_on_to_account_id ON txn_importer_factories USING btree (to_account_id);
+
+
+--
+-- Name: index_txn_importer_factories_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_txn_importer_factories_on_user_id ON txn_importer_factories USING btree (user_id);
 
 
 --
@@ -1121,6 +1199,38 @@ ALTER TABLE ONLY posted_transactions
 
 
 --
+-- Name: t_i_f_from_account_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY txn_importer_factories
+    ADD CONSTRAINT t_i_f_from_account_fk FOREIGN KEY (from_account_id) REFERENCES account(acct_id);
+
+
+--
+-- Name: t_i_f_payee_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY txn_importer_factories
+    ADD CONSTRAINT t_i_f_payee_fk FOREIGN KEY (payee_id) REFERENCES payee(payee_id);
+
+
+--
+-- Name: t_i_f_to_account_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY txn_importer_factories
+    ADD CONSTRAINT t_i_f_to_account_fk FOREIGN KEY (to_account_id) REFERENCES account(acct_id);
+
+
+--
+-- Name: t_i_f_user_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY txn_importer_factories
+    ADD CONSTRAINT t_i_f_user_fk FOREIGN KEY (user_id) REFERENCES fuser(user_id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
@@ -1137,3 +1247,7 @@ INSERT INTO schema_migrations (version) VALUES ('20150118212327');
 INSERT INTO schema_migrations (version) VALUES ('20150120012208');
 
 INSERT INTO schema_migrations (version) VALUES ('20150209022050');
+
+INSERT INTO schema_migrations (version) VALUES ('20150607111542');
+
+INSERT INTO schema_migrations (version) VALUES ('20150607113403');

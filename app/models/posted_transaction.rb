@@ -12,7 +12,7 @@ class PostedTransaction < ActiveRecord::Base
   validates :reference_identifier, uniqueness: true, allow_nil: true
   validate :unique_data
 
-  def matching
+  def duplicates
     query = PostedTransaction.
       where(account_id: account.id,
             sale_date: sale_date,
@@ -49,7 +49,7 @@ class PostedTransaction < ActiveRecord::Base
   end
 
   def unique_data
-    if matching.exists?
+    if duplicates.exists?
       errors[:data] = "non-unique"
     end
   end

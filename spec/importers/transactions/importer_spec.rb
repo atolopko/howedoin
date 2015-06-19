@@ -22,11 +22,19 @@ module Transactions
       end
     end
 
-    describe "matching Txn exists" do
+    describe "matching, unlinked Txn exists" do
+      let!(:txn) { create(:txn,
+                          from_account: pt.account,
+                          amount: pt.amount,
+                          date: pt.sale_date) }
+      
+      
       it "links PostedTransaction to existing Txn" do
+        expect { importer.import }.to change { pt.txn }.from(nil).to(txn)
       end
-
-      it "does not create a new PostedTransaction" do
+      
+      it "does not create a new Txn" do
+        expect { importer.import }.not_to change { Txn.count }
       end
     end
 
@@ -85,6 +93,21 @@ module Transactions
       it "does not change link" do
         expect { importer.import }.not_to change { pt.txn }
       end
+    end
+
+    describe "reusing PostedTransaction object that has already created a txn" do
+      before do
+        importer.import
+      end
+
+      it "does not create a new Txn" do
+        expect { importer.import }.not_to change { Txn.count }
+      end
+
+      it "does not change link" do
+        expect { importer.import }.not_to change { pt.txn }
+      end
+      
     end
 
   end

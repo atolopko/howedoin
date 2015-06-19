@@ -64,11 +64,11 @@ describe PostedTransaction do
       create_matching_txn(account: FactoryGirl.create(:account, :asset))
     end
 
-    it "returns the pre-associated txn, if it exists" do
+    it "returns nil if it has a pre-associated txn" do
       txn = create_matching_txn
       posted_txn.txn = txn
       posted_txn.save!
-      expect(posted_txn.find_matching_txn).to eq txn
+      expect(posted_txn.find_matching_txn).to be_nil
     end
 
     it "returns a matching txn, if one exists" do

@@ -21,19 +21,19 @@ module Transactions
     end
 
     def import
-      @txn = posted_txn.txn ||
-        find_existing ||
-        build_txn
-      link
-      if txn
-        Rails.logger.info("posted_txn #{posted_txn.id} => txn #{txn.id}")
+      return if @txn # Importer object already used
+
+      if posted_txn.txn
+        Rails.logger.info("posted_txn #{posted_txn.id} => txn #{posted_txn.txn.id} (previously imported)")
+      elsif (@txn = posted_txn.find_matching_txn)
+        link
+        Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{txn.id}")
+      elsif (@txn = build_txn)
+        link
+        Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{txn.id}")
       else
         Rails.logger.info("posted_txn #{posted_txn.id} not imported")
       end
-    end
-
-    def find_existing
-      nil
     end
 
     def find_factory

@@ -33,7 +33,6 @@ class PostedTransaction < ActiveRecord::Base
 
   # Attempts to find a matching Txn, comparing sale_date, account, and amount
   def find_matching_txn
-    return txn if txn
     candidates = Txn.
       where('NOT EXISTS (select 1 from posted_transactions pt where pt.txn_id = transaction.trans_id)').
       where(date: sale_date).joins(:entries).

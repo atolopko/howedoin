@@ -11,31 +11,31 @@ module Service
 
       it "creates new txn with same payee" do
         t2 = Autofill.from_last_payee_txn('payee', Date.today)
-        t2.payee.name.should == 'payee'
+        expect(t2.payee.name).to eq 'payee'
       end
 
       it "creates new txn with specified date" do
         new_date = Date.today
         t2 = Autofill.from_last_payee_txn('payee', new_date)
-        t2.date.should == new_date
+        expect(t2.date).to eq new_date
       end
 
       it "creates new txn from most recent txn of matched payee" do
         t0 = FactoryGirl.create(:txn, date: Date.today - 2.days )
         t1.entries.each { |e| e.update_attributes(memo: 'this one') }
         t2 = Autofill.from_last_payee_txn('payee', Date.today)
-        t2.entries.first.memo.should == 'this one'
+        expect(t2.entries.first.memo).to eq 'this one'
       end
 
       it "creates new txn using Txn#dup" do
         t2 = t1.dup
-        Txn.any_instance.should_receive(:dup).once.and_return(t2)
-        Autofill.from_last_payee_txn('payee', Date.today).should == t2
+        expect_any_instance_of(Txn).to receive(:dup).once.and_return(t2)
+        expect(Autofill.from_last_payee_txn('payee', Date.today)).to eq t2
       end
 
       it "matches payee name ignoring case" do
         t2 = Autofill.from_last_payee_txn('PaYeE', Date.today)
-        t2.payee.name.should == 'payee'
+        expect(t2.payee.name).to eq 'payee'
       end
 
       it "does not create new txn if payee name is ambiguous" do
@@ -47,7 +47,7 @@ module Service
         expect { Autofill.from_last_payee_txn('x', Date.today) }.to raise_error /payee not found for name x/
       end
 
-      pending "it ignores voided txn"
+      it "ignores voided txn"
     end
 
   end

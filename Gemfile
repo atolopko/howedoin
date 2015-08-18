@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '3.2.14'
+gem 'rails', '~> 3.2.0'
 
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
@@ -41,17 +41,20 @@ gem 'trollop'
 
 group :development do
   # for Guard automated testing (4 gems)
-  gem "guard-rspec", "~> 2.5.2"
-  gem "growl"
-  gem "rb-fsevent", "~> 0.9.3"
-  gem "pry-full"
-  gem "pry-rails"
+  #gem "guard-rspec", "~> 2.5.2"
+  #gem "growl"
+  #gem "rb-fsevent", "~> 0.9.3"
+  
+#  gem "pry-full"
+#  gem "pry-rails"
 end
 
 group :test, :development do
-  gem "rspec-rails", "~> 2.0"
-  # To use debugger
-  gem 'debugger'
+  gem "test-unit"
+  gem "rspec-rails"
+  gem "rspec-collection_matchers"
+#  gem "rspec-activemodel-mocks"
+#  gem "byebug"
   gem 'timecop'
 end
 

@@ -9,46 +9,46 @@ module Service
 
       it "does not modify passed in string" do
         parser.extract(/b/)
-        input.should == "a b c"
+        expect(input).to eq "a b c"
       end
 
       it "#extract removes matching substring from line" do
-        parser.extract(/b/).should == 'b'
-        parser.extract(/b/).should be_nil
+        expect(parser.extract(/b/)).to eq 'b'
+        expect(parser.extract(/b/)).to be_nil
       end
 
       it "#extract can be called safely is line is empty" do
-        ParseTxn::LineParser.new("").extract(/b/).should be_nil
+        expect(ParseTxn::LineParser.new("").extract(/b/)).to be_nil
       end
 
       it "#extract passes matching data to block" do
-        parser.extract(/b/) { |c| c.upcase }.should == 'B'
+        expect(parser.extract(/b/) { |c| c.upcase }).to eq 'B'
       end
 
       it "#extract returns captures as array if more than one capture" do
-        parser.extract(/a (.) (.)/).should == ['b', 'c']
+        expect(parser.extract(/a (.) (.)/)).to eq ['b', 'c']
       end
 
       it "#extract passes captures to block as array if more than one capture" do
         r = parser.extract(/a (.) (.)/) { |c| c.map(&:upcase) }
-        r.should == ['B', 'C']
+        expect(r).to eq ['B', 'C']
       end
 
       it "#extract returns captures as string if only 1 capture" do
-        parser.extract(/(b)/).should == 'b'
+        expect(parser.extract(/(b)/)).to eq 'b'
       end
 
       it "returns nil if no match found" do
-        parser.extract(/d/).should be_nil
+        expect(parser.extract(/d/)).to be_nil
       end
 
       it "does not call block if no match found" do
-        parser.extract(/d/) { |e| 'x' }.should_not == 'x'
+        expect(parser.extract(/d/) { |e| 'x' }).to_not eq 'x'
       end
     end
 
     it "#txn should return a Txn" do
-      ParseTxn.new("").txn.should be_a_kind_of Txn 
+      expect(ParseTxn.new("").txn).to be_a_kind_of Txn 
     end
      
     describe "txn line" do
@@ -57,15 +57,15 @@ module Service
         let(:txn) { ParseTxn.new(input).txn }
 
         it "parses date located in '#{input}'" do
-          txn.date.should == Date.new(2012, 3, 18)
+          expect(txn.date).to eq Date.new(2012, 3, 18)
         end
 
         it "parses payee located in '#{input}'" do
-          txn.payee.name.should == "The Bike Shop"
+          expect(txn.payee.name).to eq "The Bike Shop"
         end
 
         it "parses num located in '#{input}'" do
-          txn.num.should == "14"
+          expect(txn.num).to eq "14"
         end
       end
 
@@ -74,7 +74,7 @@ module Service
         let(:txn) { ParseTxn.new("2012-03-18 #14 Bike Shop").txn }
 
         it "parses payee" do
-          txn.payee.name.should == "The Bike Shop"
+          expect(txn.payee.name).to eq "The Bike Shop"
         end
       end
 
@@ -83,7 +83,7 @@ module Service
         let(:txn) { ParseTxn.new("\n\n2012-03-18").txn }
 
         it "parses date" do
-          txn.date.should == Date.new(2012, 3, 18)
+          expect(txn.date).to eq Date.new(2012, 3, 18)
         end
       end
       
@@ -91,15 +91,15 @@ module Service
         let(:txn) { ParseTxn.new("#14 The Bike Shop").txn }
         
         it "returns a Txn without a date value" do
-          txn.date.should be_nil
+          expect(txn.date).to be_nil
         end
         
         it "parses payee" do
-          txn.payee.name.should == "The Bike Shop"
+          expect(txn.payee.name).to eq "The Bike Shop"
         end
         
         it "parses num" do
-          txn.num.should == "14"
+          expect(txn.num).to eq "14"
         end
       end
 
@@ -107,15 +107,15 @@ module Service
         let(:txn) { ParseTxn.new("2012-03-18 The Bike Shop").txn }
         
         it "returns a Txn without a num" do
-          txn.num.should be_nil
+          expect(txn.num).to be_nil
         end
         
         it "parses payee" do
-          txn.payee.name.should == "The Bike Shop"
+          expect(txn.payee.name).to eq "The Bike Shop"
         end
         
         it "parses date" do
-          txn.date.should == Date.new(2012, 3, 18)
+          expect(txn.date).to eq Date.new(2012, 3, 18)
         end
       end
 
@@ -127,39 +127,39 @@ module Service
        "Account $1.01 user",
        "Account user $1.01"].each do |input|
         it "parses amount from #{input}" do
-          ParseTxn::ParseEntry.new(input).entry.amount.should == Money.new(101).to_d
+          expect(ParseTxn::ParseEntry.new(input).entry.amount).to eq Money.new(101).to_d
         end
       end
       
       it "parses missing amount as zero" do
-        ParseTxn::ParseEntry.new("Account user").entry.amount.should == 0
+        expect(ParseTxn::ParseEntry.new("Account user").entry.amount).to eq 0
       end
 
       it "parses zero amount as zero" do
-        ParseTxn::ParseEntry.new("Account $0.00 user").entry.amount.should == 0
+        expect(ParseTxn::ParseEntry.new("Account $0.00 user").entry.amount).to eq 0
       end
 
       it "parses negative amount" do
-        ParseTxn::ParseEntry.new("Account -$1.00 user").entry.amount.should == -1.0
+        expect(ParseTxn::ParseEntry.new("Account -$1.00 user").entry.amount).to eq -1.0
       end
 
       describe "account" do
         let!(:account) { FactoryGirl.create(:account, name: "Major:Minor Stuff") }
 
         it "parses fully qualified account name" do
-          ParseTxn::ParseEntry.new("Major:Minor").entry.account.should == account
+          expect(ParseTxn::ParseEntry.new("Major:Minor").entry.account).to eq account
         end
 
         it "parses account name with whitespace in name" do
-          ParseTxn::ParseEntry.new("Major:Minor Stuff").entry.account.should == account
+          expect(ParseTxn::ParseEntry.new("Major:Minor Stuff").entry.account).to eq account
         end
 
         it "parses partially qualified account name" do
-          ParseTxn::ParseEntry.new(":Minor").entry.account.should == account
+          expect(ParseTxn::ParseEntry.new(":Minor").entry.account).to eq account
         end
 
         it "parses partially qualified account name substring" do
-          ParseTxn::ParseEntry.new(":Minor").entry.account.should == account
+          expect(ParseTxn::ParseEntry.new(":Minor").entry.account).to eq account
         end
       end
 
@@ -167,7 +167,7 @@ module Service
         let!(:user_a) { FactoryGirl.create(:user, nickname: "usra", fullname: "User A") }
         let!(:user_b) { FactoryGirl.create(:user, nickname: "usrb", fullname: "User B") }
         it "parses user" do
-          ParseTxn::ParseEntry.new(input).entry.user.should == user_a
+          expect(ParseTxn::ParseEntry.new(input).entry.user).to eq user_a
         end
       end
     end
@@ -183,43 +183,43 @@ module Service
         let(:txn) { ParseTxn.new(input).txn }
 
         it "sets date" do
-          txn.date.should == Date.new(2012, 3, 18)
+          expect(txn.date).to eq Date.new(2012, 3, 18)
         end
 
         it "sets num" do
-          txn.num.should == "101"
+          expect(txn.num).to eq "101"
         end
 
         it "sets payee" do
-          txn.payee.should == payee
+          expect(txn.payee).to eq payee
         end
 
         it "create entries" do
-          txn.entries.size.should == 2
+          expect(txn.entries.size).to eq 2
         end
 
         it "sets first entry account" do
-          txn.entries[0].account.should == cash_account
+          expect(txn.entries[0].account).to eq cash_account
         end
 
         it "sets second entry account" do
-          txn.entries[1].account.should == cycling_account
+          expect(txn.entries[1].account).to eq cycling_account
         end
 
         it "sets first entry amount" do
-          txn.entries[0].amount.should == -5.0
+          expect(txn.entries[0].amount).to eq -5.0
         end
 
         it "sets second entry amount" do
-          txn.entries[1].amount.should == 5.0
+          expect(txn.entries[1].amount).to eq 5.0
         end
 
         it "sets first entry user" do
-          txn.entries[0].user.should == user
+          expect(txn.entries[0].user).to eq user
         end
 
         it "sets second entry user" do
-          txn.entries[1].user.should == user
+          expect(txn.entries[1].user).to eq user
         end
       end
     end

@@ -29,13 +29,12 @@ describe Account do
     end
 
     it "keeps existing payment default account when error occurs" do
-      pending "fix" do
-        account.update_attributes!(acct_type: 'liability')
-        payment_default_account = FactoryGirl.create(:account, payment_default: true)
-        expect {
-          account.set_payment_default rescue nil
-        }.not_to change { Account.payment_default }.from(payment_default_account)
-      end
+      pending "fix"
+      account.update_attributes!(acct_type: 'liability')
+      payment_default_account = FactoryGirl.create(:account, payment_default: true)
+      expect {
+        account.set_payment_default rescue nil
+      }.not_to change { Account.payment_default }.from(payment_default_account)
     end
   end
 end

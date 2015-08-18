@@ -29,7 +29,7 @@ describe User do
 
     it "keeps existing payment default user when error occurs" do
       payment_default_user = FactoryGirl.create(:user, payment_default: true)
-      user.stub(:update_attributes!).and_raise "sorry"
+      allow(user).to receive(:update_attributes!).and_raise "sorry"
       expect {
         user.set_payment_default rescue nil
       }.not_to change { User.payment_default }.from(payment_default_user)

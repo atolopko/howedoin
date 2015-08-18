@@ -2,7 +2,7 @@
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
-require 'pry-debugger'
+# require 'pry-debugger'
 # require 'rspec/autorun' # causes Zeus to run specs twice [https://github.com/burke/zeus/issues/180]
 
 # Requires supporting ruby files with custom matchers and macros, etc,

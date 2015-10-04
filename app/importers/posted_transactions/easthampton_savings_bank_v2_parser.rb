@@ -9,7 +9,7 @@ module PostedTransactions
 
     def ending_balance
       posted_txns
-      @ending_balance
+      @ending_balance || to_amount('0.00')
     end
 
     private
@@ -17,8 +17,9 @@ module PostedTransactions
     def parse
       posted_txns = []
       CSV.foreach(@posted_txns_csv, skip_blanks: true, headers: true) do |row|
+        return [] if row['Transaction Description'] == 'No Activity this period.'
         posted_txns << populate(row.to_hash)
-        @ending_balance = to_amount row['Ending Balance']      
+        @ending_balance = to_amount row['Ending Balance']
       end
       posted_txns
     end

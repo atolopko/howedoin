@@ -50,5 +50,23 @@ module PostedTransactions
       end
     end
 
+    context "no activity" do
+      let(:posted_txns_data) {
+        <<-CSV
+"Account Number","Date","Transaction Description","Transaction Amount","Ending Balance"
+"999999999","","No Activity this period.","","",""
+      CSV
+      }
+
+      it "returns empty result" do
+        expect(parser.posted_txns).to be_empty
+      end
+
+      it "returns zero ending balance" do
+        expect(parser.ending_balance).to eq BigDecimal('0.00')
+      end
+    end
+
+
   end
 end

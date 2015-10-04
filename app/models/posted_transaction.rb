@@ -53,4 +53,8 @@ class PostedTransaction < ActiveRecord::Base
     end
   end
 
+  def to_s
+    "[#{self.class.name}: #{self.attributes.map { |k,v| k + '=' + v.to_s }.join(', ')}"
+  end
+
 end

@@ -35,5 +35,5 @@ begin
   end
 rescue StandardError => e
   raise e if options.debug
-  ap e.message
+  puts e.message
 end

@@ -45,16 +45,16 @@ group :development do
   #gem "growl"
   #gem "rb-fsevent", "~> 0.9.3"
   
-#  gem "pry-full"
-#  gem "pry-rails"
+  # gem "pry-full"
+  # gem "pry-rails"
 end
 
 group :test, :development do
+  gem "pry-byebug"
   gem "test-unit"
   gem "rspec-rails"
   gem "rspec-collection_matchers"
 #  gem "rspec-activemodel-mocks"
-#  gem "byebug"
   gem 'timecop'
 end
 

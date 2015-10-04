@@ -10,23 +10,6 @@ class PostedTransaction < ActiveRecord::Base
   validates :txn_id, uniqueness: true, allow_nil: true
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true
-  validate :unique_data
-
-  def duplicates
-    query = PostedTransaction.
-      where(account_id: account.id,
-            sale_date: sale_date,
-            post_date: post_date,
-            amount: amount,
-            reference_identifier: reference_identifier,
-            type_identifier: type_identifier,
-            category: category,
-            memo: memo,
-            person: person)
-    # ignore self
-    query = query.where('id <> ?', id) if persisted?
-    query
-  end
 
   class MultipleMatchingTxns < StandardError
   end
@@ -44,12 +27,6 @@ class PostedTransaction < ActiveRecord::Base
       raise MultipleMatchingTxns, candidates.map(&:id).join(", ") 
     else
       candidates.first
-    end
-  end
-
-  def unique_data
-    if duplicates.exists?
-      errors[:data] = "non-unique"
     end
   end
 

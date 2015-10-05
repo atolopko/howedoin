@@ -5,7 +5,6 @@ module Transactions
       PostedTransaction.transaction do
         unimported_posted_txns.each do |posted_txn|
           Importer.new(posted_txn).import
-#          raise ActiveRecord::Rollback
         end
       end
     end
@@ -30,7 +29,7 @@ module Transactions
         Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{txn.id}")
       elsif (@txn = build_txn)
         link
-        Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{txn.id}")
+        Rails.logger.info("posted_txn #{posted_txn.id} => new txn #{txn.id}")
       else
         Rails.logger.info("posted_txn #{posted_txn.id} not imported")
       end
@@ -44,8 +43,11 @@ module Transactions
         where("max_amount is null or ? <= max_amount", posted_txn.amount).
         where("? ~ memo_regexp", posted_txn.memo).
         limit(2)
-      return applicable_factories.first if applicable_factories.count == 1
-      nil
+      if applicable_factories.count == 1
+        factory = applicable_factories.first
+        Rails.logger.debug("using factory #{factory.id}")
+        factory
+      end
     end
 
     def build_txn

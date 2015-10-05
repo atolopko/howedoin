@@ -40,6 +40,8 @@ module Transactions
       applicable_factories =
         TxnImporterFactory.
         where(from_account_id: posted_txn.account.id).
+        where("min_amount is null or ? >= min_amount", posted_txn.amount).
+        where("max_amount is null or ? <= max_amount", posted_txn.amount).
         where("? ~ memo_regexp", posted_txn.memo).
         limit(2)
       return applicable_factories.first if applicable_factories.count == 1

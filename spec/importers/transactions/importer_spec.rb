@@ -27,6 +27,36 @@ module Transactions
       it "links new Txn to PostedTransaction" do
         expect(pt.reload.txn).to eq importer.txn
       end
+
+      describe "only sale date exists on posted transaction" do
+        let(:pt) { create(:posted_transaction,
+                          amount: BigDecimal(2), memo: "memo",
+                          sale_date: Date.current - 1.day, post_date: nil) }
+
+        it "creates Txn with sale date" do
+          expect(importer.txn.date).to eq pt.sale_date
+        end
+      end
+      
+      describe "sale and post date exist on posted transaction" do
+        let(:pt) { create(:posted_transaction,
+                          amount: BigDecimal(2), memo: "memo",
+                          sale_date: Date.current - 1.day, post_date: Date.current) }
+
+        it "creates Txn with sale date" do
+          expect(importer.txn.date).to eq pt.sale_date
+        end
+      end
+      
+      describe "only post date exists on posted transaction" do
+        let(:pt) { create(:posted_transaction,
+                          amount: BigDecimal(2), memo: "memo",
+                          sale_date: nil, post_date: Date.current) }
+
+        it "creates Txn with post date" do
+          expect(importer.txn.date).to eq pt.post_date
+        end
+      end
     end
 
     describe "matching, unlinked Txn exists" do
@@ -37,7 +67,7 @@ module Transactions
       
       
       it "links PostedTransaction to existing Txn" do
-        expect { importer.import }.to change { pt.txn }.from(nil).to(txn)
+        expect { importer.import }.to change { pt.reload.txn }.from(nil).to(txn)
       end
       
       it "does not create a new Txn" do

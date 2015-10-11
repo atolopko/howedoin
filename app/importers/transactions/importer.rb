@@ -26,10 +26,10 @@ module Transactions
         Rails.logger.info("posted_txn #{posted_txn.id} => txn #{posted_txn.txn.id} (previously imported)")
       elsif (@txn = posted_txn.find_matching_txn)
         link
-        Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{txn.id}")
+        Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{@txn.id}")
       elsif (@txn = build_txn)
         link
-        Rails.logger.info("posted_txn #{posted_txn.id} => new txn #{txn.id}")
+        Rails.logger.info("posted_txn #{posted_txn.id} => new txn #{@txn.id}")
       else
         Rails.logger.info("posted_txn #{posted_txn.id} not imported")
       end
@@ -54,23 +54,24 @@ module Transactions
       factory = find_factory
       return nil unless factory
 
-      txn = Txn.new(date: posted_txn.sale_date,
-                    payee: factory.payee)
-      txn.entries << Entry.new(account: posted_txn.account,
-                               user: factory.user,
-                               amount: (-posted_txn.amount if posted_txn.amount),
-                               memo: posted_txn.memo,
-                               num: posted_txn.reference_identifier)
-      txn.entries << Entry.new(account: factory.to_account,
-                               user: factory.user,
-                               amount: posted_txn.amount)
-      txn
+      @txn = Txn.new(date: posted_txn.sale_date || posted_txn.post_date,
+                     payee: factory.payee)
+      @txn.entries << Entry.new(account: posted_txn.account,
+                                user: factory.user,
+                                amount: (-posted_txn.amount if posted_txn.amount),
+                                memo: posted_txn.memo,
+                                num: posted_txn.reference_identifier)
+      @txn.entries << Entry.new(account: factory.to_account,
+                                user: factory.user,
+                                amount: posted_txn.amount)
+      @txn.save!
+      @txn
     end
 
     def link
-      return unless txn
+      return unless @txn
       return if posted_txn.txn.present?
-      posted_txn.txn = txn
+      posted_txn.txn = @txn
       posted_txn.save!
     end
   end

@@ -1,5 +1,5 @@
 class PostedTransaction < ActiveRecord::Base
-  attr_accessible :account, :statement, :amount, :type_identifier
+  attr_accessible :account, :statement, :amount, :type_identifier, :sale_date, :post_date
 
   belongs_to :account, primary_key: 'acct_id', foreign_key: 'account_id'
   belongs_to :statement, primary_key: 'stmt_id', foreign_key: 'stmt_id'

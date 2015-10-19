@@ -60,7 +60,10 @@ class TxnBuilder
   alias_method :also, :build_entry
   alias_method :spending, :costing
 
-
+  def resolve_model(match_value, type, attr = :name)
+    self.class.resolve_model(match_value, type, attr)
+  end
+  
   def self.resolve_model(match_value, type, attr = :name)
     return nil if match_value.blank?
     return match_value if match_value.kind_of? type
@@ -72,8 +75,9 @@ class TxnBuilder
         return res.first
       end
     end
-    return type.find(match_value) if match_value.kind_of? Fixnum
-    raise "No such #{type} where #{attr}='#{match_value}' (#{match_value.class})" if res.nil?
+    res = type.find(match_value) if match_value.kind_of? Fixnum
+    return res if res.present?
+    raise "No such #{type} where #{attr}='#{match_value}' (#{match_value.class})"
   end
 
 

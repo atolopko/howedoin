@@ -1,12 +1,15 @@
 module Transactions
   class Importer
 
-    def self.import_all
+    def self.import_all(factory = nil)
+      result = Hash.new { |h,k| h[k] = [] }
       PostedTransaction.transaction do
         unimported_posted_txns.each do |posted_txn|
-          Importer.new(posted_txn).import
+          status = Importer.new(posted_txn, factory).import
+          result[status] << posted_txn
         end
       end
+      result
     end
 
     def self.unimported_posted_txns
@@ -15,23 +18,28 @@ module Transactions
 
     attr_accessor :posted_txn, :txn
 
-    def initialize(posted_txn)
+    def initialize(posted_txn, factory = nil)
       @posted_txn = posted_txn
+      @factory = factory
     end
 
     def import
-      return if @txn # Importer object already used
+      return :redundant_call if @txn
 
       if posted_txn.txn
         Rails.logger.info("posted_txn #{posted_txn.id} => txn #{posted_txn.txn.id} (previously imported)")
+        :previously_imported
       elsif (@txn = posted_txn.find_matching_txn)
         link
         Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{@txn.id}")
+        :linked_to_existing
       elsif (@txn = build_txn)
         link
         Rails.logger.info("posted_txn #{posted_txn.id} => new txn #{@txn.id}")
+        :created
       else
         Rails.logger.info("posted_txn #{posted_txn.id} not imported")
+        :not_imported
       end
     end
 
@@ -45,8 +53,10 @@ module Transactions
         limit(2)
       if applicable_factories.count == 1
         factory = applicable_factories.first
-        Rails.logger.debug("using factory #{factory.id}")
-        factory
+        if @factory.nil? || @factory == factory
+          Rails.logger.debug("using factory #{factory.id}")
+          factory
+        end
       end
     end
 

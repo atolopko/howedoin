@@ -61,15 +61,19 @@ class TxnBuilder
   alias_method :spending, :costing
 
 
-  private
-
-  def resolve_model(match_value, type, attr = :name)
+  def self.resolve_model(match_value, type, attr = :name)
     return nil if match_value.blank?
     return match_value if match_value.kind_of? type
-    # TODO: better way to do wildcard matching naturally in Rails?
-    return type.where("#{attr.to_s} ilike ?", match_value).first! if match_value.kind_of? String
+    if match_value.kind_of? String
+      # TODO: better way to do wildcard matching naturally in Rails?
+      res = type.where("#{attr.to_s} ilike ?", match_value).limit(2)
+      if res.present?
+        raise "Ambiguous #{type} where #{attr}='#{match_value}'" if res.size > 1
+        return res.first
+      end
+    end
     return type.find(match_value) if match_value.kind_of? Fixnum
-    raise "Cannot parse #{type} '#{match_value}' (#{match_value.class})"
+    raise "No such #{type} where #{attr}='#{match_value}' (#{match_value.class})" if res.nil?
   end
 
 

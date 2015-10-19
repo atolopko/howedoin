@@ -46,7 +46,7 @@ group :development do
   #gem "rb-fsevent", "~> 0.9.3"
   
   # gem "pry-full"
-  # gem "pry-rails"
+  gem "pry-rails"
 end
 
 group :test, :development do

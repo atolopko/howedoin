@@ -50,6 +50,7 @@ group :development do
 end
 
 group :test, :development do
+  gem 'awesome_print'
   gem "pry-byebug"
   gem "test-unit"
   gem "rspec-rails"

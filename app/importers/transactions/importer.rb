@@ -33,8 +33,7 @@ module Transactions
         link
         Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{@txn.id}")
         :linked_to_existing
-      elsif (@txn = build_txn)
-        link
+      elsif @txn = build_txn
         Rails.logger.info("posted_txn #{posted_txn.id} => new txn #{@txn.id}")
         :created
       else
@@ -74,8 +73,10 @@ module Transactions
       @txn.entries << Entry.new(account: factory.to_account,
                                 user: factory.user,
                                 amount: posted_txn.amount)
+      posted_txn.txn_importer_factory = factory
+      link
       @txn.save!
-      @txn
+      return @txn
     end
 
     def link

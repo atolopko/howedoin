@@ -11,6 +11,10 @@ module Transactions
                                          from_account: pt.account,
                                          memo_regexp: 'memo') }
     
+    describe ".import_all" do
+      pending
+    end
+
     describe "PostedTransaction not yet imported" do
       before do
         importer.import

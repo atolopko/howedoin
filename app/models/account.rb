@@ -19,4 +19,28 @@ class Account < ActiveRecord::Base
       update_attributes!(payment_default: true)
     end
   end
+
+  def asset?
+    acct_type == 'asset'
+  end
+
+  def liability?
+    acct_type == 'liability'
+  end
+
+  def asset_or_liability?
+    asset? || liability?
+  end
+
+  def income?
+    acct_type == 'income'
+  end
+
+  def expense?
+    acct_type == 'expense'
+  end
+
+  def income_or_expense?
+    income? || expense?
+  end
 end

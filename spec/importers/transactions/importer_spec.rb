@@ -6,20 +6,10 @@ module Transactions
     let(:pt) { create(:posted_transaction, amount: BigDecimal(2), memo: "memo") }
     let(:importer) { Importer.new(pt) }
     let!(:txn_importer_factory) { create(:txn_importer_factory,
-                                         min_amount: BigDecimal(1),
-                                         max_amount: BigDecimal(3),
                                          from_account: pt.account,
                                          memo_regexp: 'memo') }
     
-    describe ".import_all" do
-      pending
-    end
-
-    describe "PostedTransaction not yet imported" do
-      before do
-        importer.import
-      end
-
+    shared_examples "posted transaction processed" do
       it "creates a new Txn" do
         expect(importer.txn).to be_present
       end
@@ -30,6 +20,86 @@ module Transactions
 
       it "links new Txn to PostedTransaction" do
         expect(pt.reload.txn).to eq importer.txn
+      end
+
+      it "records the transaction import factory used" do
+        expect(pt.reload.txn_importer_factory).to eq txn_importer_factory
+      end
+    end
+
+    describe ".import_all" do
+      pending
+    end
+
+    describe "PostedTransaction not yet imported" do
+      before do
+        importer.import
+      end
+
+      it_behaves_like "posted transaction processed"
+
+      describe "withdrawal from asset type account" do
+        let(:account) { create(:account, :asset) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: -BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :expense),
+                                             memo_regexp: 'memo') }
+
+        it "debits asset account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq -2
+        end
+      end
+
+      describe "deposit to asset type account" do
+        let(:account) { create(:account, :asset) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :income),
+                                             memo_regexp: 'memo') }
+
+        it "debits asset account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq 2
+        end
+      end
+
+      describe "withdrawal from liability type account" do
+        let(:account) { create(:account, :liability) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: -BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :expense),
+                                             memo_regexp: 'memo') }
+
+        it "debits liability account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq -2
+        end
+      end
+
+      describe "deposit to liability type account" do
+        let(:account) { create(:account, :liability) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :expense),
+                                             memo_regexp: 'memo') }
+
+        it "debits asset account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq 2
+        end
       end
 
       describe "only sale date exists on posted transaction" do
@@ -69,7 +139,6 @@ module Transactions
                           amount: pt.amount,
                           date: pt.sale_date) }
       
-      
       it "links PostedTransaction to existing Txn" do
         expect { importer.import }.to change { pt.reload.txn }.from(nil).to(txn)
       end
@@ -108,12 +177,32 @@ module Transactions
       it_behaves_like "posted transaction not processed"
     end
 
-    describe "no matching factory due to amount mismatch" do
-      let(:pt) { create(:posted_transaction,
-                        memo: "memo",
-                        amount: BigDecimal.new('4.0')) }
+    describe "amount range specified" do
+      let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                           min_amount: BigDecimal(1),
+                                           max_amount: BigDecimal(3),
+                                           from_account: pt.account,
+                                           memo_regexp: 'memo') }
 
-      it_behaves_like "posted transaction not processed"
+      before do
+        importer.import
+      end
+
+      describe "amount out of range" do
+        let(:pt) { create(:posted_transaction,
+                          memo: "memo",
+                          amount: BigDecimal.new('4.0')) }
+        
+        it_behaves_like "posted transaction not processed"
+      end
+
+      describe "amount in range" do
+        let(:pt) { create(:posted_transaction,
+                          memo: "memo",
+                          amount: BigDecimal.new('2.0')) }
+        
+        it_behaves_like "posted transaction processed"
+      end
     end
 
     describe "ambiguous matching factory" do

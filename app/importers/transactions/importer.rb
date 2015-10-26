@@ -65,14 +65,16 @@ module Transactions
 
       @txn = Txn.new(date: posted_txn.sale_date || posted_txn.post_date,
                      payee: factory.payee)
+      from_amount = posted_txn.account.asset_or_liability? ? posted_txn.amount : -posted_txn.amount
+      to_amount = -from_amount
       @txn.entries << Entry.new(account: posted_txn.account,
                                 user: factory.user,
-                                amount: (-posted_txn.amount if posted_txn.amount),
+                                amount: from_amount,
                                 memo: posted_txn.memo,
                                 num: posted_txn.reference_identifier)
       @txn.entries << Entry.new(account: factory.to_account,
                                 user: factory.user,
-                                amount: posted_txn.amount)
+                                amount: to_amount)
       posted_txn.txn_importer_factory = factory
       link
       @txn.save!

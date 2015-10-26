@@ -37,100 +37,6 @@ module Transactions
       end
 
       it_behaves_like "posted transaction processed"
-
-      describe "withdrawal from asset type account" do
-        let(:account) { create(:account, :asset) }
-        let(:pt) { create(:posted_transaction,
-                          account: account,
-                          amount: -BigDecimal(2),
-                          memo: "memo") }
-        let!(:txn_importer_factory) { create(:txn_importer_factory,
-                                             from_account: pt.account,
-                                             to_account: create(:account, :expense),
-                                             memo_regexp: 'memo') }
-
-        it "debits asset account and credits 'to' account" do
-          expect(pt.reload.txn.amount).to eq -2
-        end
-      end
-
-      describe "deposit to asset type account" do
-        let(:account) { create(:account, :asset) }
-        let(:pt) { create(:posted_transaction,
-                          account: account,
-                          amount: BigDecimal(2),
-                          memo: "memo") }
-        let!(:txn_importer_factory) { create(:txn_importer_factory,
-                                             from_account: pt.account,
-                                             to_account: create(:account, :income),
-                                             memo_regexp: 'memo') }
-
-        it "debits asset account and credits 'to' account" do
-          expect(pt.reload.txn.amount).to eq 2
-        end
-      end
-
-      describe "withdrawal from liability type account" do
-        let(:account) { create(:account, :liability) }
-        let(:pt) { create(:posted_transaction,
-                          account: account,
-                          amount: -BigDecimal(2),
-                          memo: "memo") }
-        let!(:txn_importer_factory) { create(:txn_importer_factory,
-                                             from_account: pt.account,
-                                             to_account: create(:account, :expense),
-                                             memo_regexp: 'memo') }
-
-        it "debits liability account and credits 'to' account" do
-          expect(pt.reload.txn.amount).to eq -2
-        end
-      end
-
-      describe "deposit to liability type account" do
-        let(:account) { create(:account, :liability) }
-        let(:pt) { create(:posted_transaction,
-                          account: account,
-                          amount: BigDecimal(2),
-                          memo: "memo") }
-        let!(:txn_importer_factory) { create(:txn_importer_factory,
-                                             from_account: pt.account,
-                                             to_account: create(:account, :expense),
-                                             memo_regexp: 'memo') }
-
-        it "debits asset account and credits 'to' account" do
-          expect(pt.reload.txn.amount).to eq 2
-        end
-      end
-
-      describe "only sale date exists on posted transaction" do
-        let(:pt) { create(:posted_transaction,
-                          amount: BigDecimal(2), memo: "memo",
-                          sale_date: Date.current - 1.day, post_date: nil) }
-
-        it "creates Txn with sale date" do
-          expect(importer.txn.date).to eq pt.sale_date
-        end
-      end
-      
-      describe "sale and post date exist on posted transaction" do
-        let(:pt) { create(:posted_transaction,
-                          amount: BigDecimal(2), memo: "memo",
-                          sale_date: Date.current - 1.day, post_date: Date.current) }
-
-        it "creates Txn with sale date" do
-          expect(importer.txn.date).to eq pt.sale_date
-        end
-      end
-      
-      describe "only post date exists on posted transaction" do
-        let(:pt) { create(:posted_transaction,
-                          amount: BigDecimal(2), memo: "memo",
-                          sale_date: nil, post_date: Date.current) }
-
-        it "creates Txn with post date" do
-          expect(importer.txn.date).to eq pt.post_date
-        end
-      end
     end
 
     describe "matching, unlinked Txn exists" do
@@ -230,5 +136,126 @@ module Transactions
       
     end
 
+    describe "created Txn" do
+      before do
+        importer.import
+      end
+
+      describe "withdrawal from asset type account" do
+        let(:account) { create(:account, :asset) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: -BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :expense),
+                                             memo_regexp: 'memo') }
+
+        it "debits asset account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq -2
+        end
+      end
+
+      describe "deposit to asset type account" do
+        let(:account) { create(:account, :asset) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :income),
+                                             memo_regexp: 'memo') }
+
+        it "debits asset account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq 2
+        end
+      end
+
+      describe "withdrawal from liability type account" do
+        let(:account) { create(:account, :liability) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: -BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :expense),
+                                             memo_regexp: 'memo') }
+
+        it "debits liability account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq -2
+        end
+      end
+
+      describe "deposit to liability type account" do
+        let(:account) { create(:account, :liability) }
+        let(:pt) { create(:posted_transaction,
+                          account: account,
+                          amount: BigDecimal(2),
+                          memo: "memo") }
+        let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                             from_account: pt.account,
+                                             to_account: create(:account, :expense),
+                                             memo_regexp: 'memo') }
+
+        it "debits asset account and credits 'to' account" do
+          expect(pt.reload.txn.amount).to eq 2
+        end
+      end
+
+      # Test credit card account that reports statement debits as
+      # positive values
+      describe "account negated statement amounts" do
+        describe "withdrawal from liability type account" do
+          let(:account) { create(:account, :asset,
+                                 stmt_amounts_negated: true) }
+          let(:pt) { create(:posted_transaction,
+                            account: account,
+                            amount: BigDecimal(2),
+                            memo: "memo") }
+          let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                               from_account: pt.account,
+                                               to_account: create(:account, :expense),
+                                               memo_regexp: 'memo') }
+          
+          it "debits liability account and credits 'to' account" do
+            expect(pt.reload.txn.amount).to eq -2
+          end
+        end
+      end
+
+      describe "only sale date exists on posted transaction" do
+        let(:pt) { create(:posted_transaction,
+                          amount: BigDecimal(2), memo: "memo",
+                          sale_date: Date.current - 1.day, post_date: nil) }
+
+        it "creates Txn with sale date" do
+          expect(importer.txn.date).to eq pt.sale_date
+        end
+      end
+      
+      describe "sale and post date exist on posted transaction" do
+        let(:pt) { create(:posted_transaction,
+                          amount: BigDecimal(2), memo: "memo",
+                          sale_date: Date.current - 1.day, post_date: Date.current) }
+
+        it "creates Txn with sale date" do
+          expect(importer.txn.date).to eq pt.sale_date
+        end
+      end
+      
+      describe "only post date exists on posted transaction" do
+        let(:pt) { create(:posted_transaction,
+                          amount: BigDecimal(2), memo: "memo",
+                          sale_date: nil, post_date: Date.current) }
+
+        it "creates Txn with post date" do
+          expect(importer.txn.date).to eq pt.post_date
+        end
+      end
+    end
+    
   end
 end

@@ -3,7 +3,7 @@ class Account < ActiveRecord::Base
 
   self.table_name = 'account'
 
-  attr_accessible :acct_type, :name, :number, :description, :opened_on, :closed, :closed_on, :payment_default
+  attr_accessible :acct_type, :name, :number, :description, :opened_on, :closed, :closed_on, :payment_default, :stmt_amounts_negated
 
   has_many :statements, foreign_key: 'acct_id'
 
@@ -42,5 +42,9 @@ class Account < ActiveRecord::Base
 
   def income_or_expense?
     income? || expense?
+  end
+
+  def stmt_amounts_negated?
+    stmt_amounts_negated
   end
 end

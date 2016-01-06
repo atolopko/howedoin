@@ -1,0 +1,11 @@
+#!/usr/bin/env rails runner
+
+options = Trollop.options do
+  opt :payee, "Payee", short: 'p', type: :string, required: false
+  opt :to_account, "To Account", short: 'a', type: :string, required: true
+  opt :from_account, "To Account", short: 'a', type: :string, required: true
+  opt :user, "User", short: 'u', type: string, required: true, default: 'both'
+end
+
+TxnImporterFactory.smart_create!(attrs)
+

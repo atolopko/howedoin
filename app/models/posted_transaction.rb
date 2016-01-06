@@ -1,9 +1,10 @@
 class PostedTransaction < ActiveRecord::Base
-  attr_accessible :account, :statement, :amount, :type_identifier, :sale_date, :post_date
+  attr_accessible :account, :statement, :amount, :type_identifier, :sale_date, :post_date, :txn_importer_factory
 
   belongs_to :account, primary_key: 'acct_id', foreign_key: 'account_id'
   belongs_to :statement, primary_key: 'stmt_id', foreign_key: 'stmt_id'
   belongs_to :txn, primary_key: 'trans_id', foreign_key: 'txn_id'
+  belongs_to :txn_importer_factory
 
   validates :account, presence: true
   validates :statement, presence: true

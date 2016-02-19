@@ -5,10 +5,18 @@ options = Trollop.options do
   opt :to_account, "To Account", short: 't', type: :string, required: true
   opt :from_account, "To Account", short: 'f', type: :string, required: true
   opt :user, "User", short: 'u', type: :string, required: true, default: 'both'
-  opt :memo_regexp, "Statement memo (regexp)", short: 'r', type: :string, required: true
+  opt :memo_regexp, "Statement memo (regexp)", short: 'm', type: :string, required: true
   opt :min_amount, "Statement Minimum amount", short: 'n', type: :float
   opt :max_amount, "Statement Maximum amount", short: 'x', type: :float
+  opt :run, "Run transaction import process with new factory", short: nil
 end
 
-TxnImporterFactory.smart_create!(options)
+factory = TxnImporterFactory.smart_create!(options)
+puts "Added factory"
 
+if options.run
+  puts "Running transaction importer..."
+  report = Transactions::Importer.import_all(factory)
+  report = report.delete_if { |k,v| k == :not_imported }
+  ap report
+end

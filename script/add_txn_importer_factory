@@ -2,10 +2,13 @@
 
 options = Trollop.options do
   opt :payee, "Payee", short: 'p', type: :string, required: false
-  opt :to_account, "To Account", short: 'a', type: :string, required: true
-  opt :from_account, "To Account", short: 'a', type: :string, required: true
-  opt :user, "User", short: 'u', type: string, required: true, default: 'both'
+  opt :to_account, "To Account", short: 't', type: :string, required: true
+  opt :from_account, "To Account", short: 'f', type: :string, required: true
+  opt :user, "User", short: 'u', type: :string, required: true, default: 'both'
+  opt :memo_regexp, "Statement memo (regexp)", short: 'r', type: :string, required: true
+  opt :min_amount, "Statement Minimum amount", short: 'n', type: :float
+  opt :max_amount, "Statement Maximum amount", short: 'x', type: :float
 end
 
-TxnImporterFactory.smart_create!(attrs)
+TxnImporterFactory.smart_create!(options)
 

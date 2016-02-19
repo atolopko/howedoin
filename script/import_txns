@@ -1,0 +1,9 @@
+#!/usr/bin/env rails runner
+
+options = Trollop.options do
+end
+
+puts "Running transaction importer..."
+report = Transactions::Importer.import_all
+report = report.delete_if { |k,v| k == :not_imported }
+ap report

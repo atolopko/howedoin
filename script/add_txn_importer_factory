@@ -11,8 +11,13 @@ options = Trollop.options do
   opt :run, "Run transaction import process with new factory", short: nil
 end
 
-factory = TxnImporterFactory.smart_create!(options)
-puts "Added factory"
+begin
+  factory = TxnImporterFactory.smart_create!(options)
+  puts "Added factory"
+rescue StandardError => e
+  puts "Failed: #{e}"
+  exit 1
+end
 
 if options.run
   puts "Running transaction importer..."

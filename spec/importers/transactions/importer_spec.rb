@@ -114,7 +114,7 @@ module Transactions
     describe "date range specified" do
       let!(:txn_importer_factory) { create(:txn_importer_factory,
                                            min_date: '2016-01-01',
-                                           max_date: '2016-01-02',
+                                           max_date: '2016-01-03',
                                            from_account: pt.account,
                                            memo_regexp: 'memo') }
 

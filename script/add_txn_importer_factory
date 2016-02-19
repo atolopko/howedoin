@@ -12,6 +12,11 @@ options = Trollop.options do
 end
 
 begin
+  options[:from_account] = Integer(options[:from_account])
+rescue ArgumentError
+end
+  
+begin
   factory = TxnImporterFactory.smart_create!(options)
   puts "Added factory"
 rescue StandardError => e

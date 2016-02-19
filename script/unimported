@@ -1,0 +1,20 @@
+#!/usr/bin/env rails runner
+
+options = Trollop.options do
+  opt :account_id, "To Account", short: 'f', type: :string
+  opt :memo, "Statement memo (regexp)", short: 'm', type: :string
+  # opt :min_amount, "Statement Minimum amount", short: 'n', type: :float
+  # opt :max_amount, "Statement Maximum amount", short: 'x', type: :float
+end
+
+query = PostedTransaction.
+        group(:account_id, :memo).
+        having('count(txn_id) = 0').
+        order('memo')
+        
+[:memo, :account_id].each do |attr|
+  query = query.where("#{attr.to_s} ~* ?", options[attr]) if options[attr]
+end
+
+ap query.count
+#    to_sql

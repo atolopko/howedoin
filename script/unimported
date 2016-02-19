@@ -7,14 +7,18 @@ options = Trollop.options do
   # opt :max_amount, "Statement Maximum amount", short: 'x', type: :float
 end
 
-query = PostedTransaction.
-        group(:account_id, :memo).
-        having('count(txn_id) = 0').
-        order('memo')
+query = PostedTransaction
         
 [:memo, :account_id].each do |attr|
   query = query.where("#{attr.to_s} ~* ?", options[attr]) if options[attr]
 end
 
+ap query.
+    group(:account_id, :memo).
+    having('count(txn_id) = 0').
+    order('memo').
+    count
+
 ap query.count
-#    to_sql
+
+

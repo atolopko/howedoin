@@ -20,6 +20,8 @@ class TxnImporterFactory < ActiveRecord::Base
       create!(memo_regexp: attrs[:memo_regexp],
               min_amount: attrs[:min_amount],
               max_amount: attrs[:max_amount],
+              min_date: attrs[:min_date],
+              max_date: attrs[:max_date],
               to_account: to_account,
               from_account: from_account,
               user: user,

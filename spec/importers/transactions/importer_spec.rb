@@ -111,6 +111,55 @@ module Transactions
       end
     end
 
+    describe "date range specified" do
+      let!(:txn_importer_factory) { create(:txn_importer_factory,
+                                           min_date: '2016-01-01',
+                                           max_date: '2016-01-02',
+                                           from_account: pt.account,
+                                           memo_regexp: 'memo') }
+
+      before do
+        importer.import
+      end
+
+      ['2015-12-31', '2016-01-03'].each do |date|
+        describe "post date out of range" do
+          let(:pt) { create(:posted_transaction,
+                            memo: "memo",
+                            post_date: Date.parse(date)) }
+          
+          it_behaves_like "posted transaction not processed"
+        end
+
+        describe "sale date out of range" do
+          let(:pt) { create(:posted_transaction,
+                            memo: "memo",
+                            sale_date: Date.parse(date)) }
+          
+          it_behaves_like "posted transaction not processed"
+        end
+      end
+
+      ['2016-01-01', '2016-01-02'].each do |date|
+        describe "post date in range" do
+          let(:pt) { create(:posted_transaction,
+                            memo: "memo",
+                            post_date: Date.parse(date)) }
+          
+          it_behaves_like "posted transaction processed"
+        end
+        
+        
+        describe "sale date in range" do
+          let(:pt) { create(:posted_transaction,
+                            memo: "memo",
+                            sale_date: Date.parse(date)) }
+        
+          it_behaves_like "posted transaction processed"
+        end
+      end
+    end
+
     describe "ambiguous matching factory" do
       before do
         create(:txn_importer_factory,

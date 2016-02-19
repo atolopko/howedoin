@@ -6,8 +6,10 @@ options = Trollop.options do
   opt :from_account, "To Account", short: 'f', type: :string, required: true
   opt :user, "User", short: 'u', type: :string, required: true, default: 'both'
   opt :memo_regexp, "Statement memo (regexp)", short: 'm', type: :string, required: true
-  opt :min_amount, "Statement Minimum amount", short: 'n', type: :float
-  opt :max_amount, "Statement Maximum amount", short: 'x', type: :float
+  opt :min_amount, "Statement minimum amount", short: 'n', type: :float
+  opt :max_amount, "Statement maximum amount", short: 'x', type: :float
+  opt :min_date, "Statement minimum date", type: :date
+  opt :max_date, "Statement maximum date", type: :date
   opt :run, "Run transaction import process with new factory", short: nil
 end
 
@@ -15,7 +17,7 @@ begin
   options[:from_account] = Integer(options[:from_account])
 rescue ArgumentError
 end
-  
+
 begin
   factory = TxnImporterFactory.smart_create!(options)
   puts "Added factory"

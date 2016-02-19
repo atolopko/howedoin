@@ -48,6 +48,8 @@ module Transactions
         where(from_account_id: posted_txn.account.id).
         where("min_amount is null or ? >= min_amount", posted_txn.amount).
         where("max_amount is null or ? <= max_amount", posted_txn.amount).
+        where("min_date is null or ? >= min_date", posted_txn.post_date || posted_txn.sale_date).
+        where("max_date is null or ? <= max_date", posted_txn.post_date || posted_txn.sale_date).
         where("? ~* memo_regexp", posted_txn.memo).
         limit(2)
       if applicable_factories.count == 1

@@ -104,6 +104,7 @@ describe PostedTransaction do
 
       it "returns nil if no matching txns within post_date search range" do
         non_matching_date_txn = create_matching_txn(date: post_date - 4.days)
+        non_matching_date_txn = create_matching_txn(date: post_date + 1.day)
         expect(posted_txn.find_matching_txn).to be_nil
       end
 

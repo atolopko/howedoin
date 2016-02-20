@@ -26,7 +26,7 @@ class PostedTransaction < ActiveRecord::Base
       if sale_date
         candidates.where(date: sale_date)
       else
-        candidates.where("date >= date ? - interval '3 days'", post_date)
+        candidates.where("date between (date ? - interval '3 days') and (date ?)", post_date, post_date)
       end
     candidates = candidates.all
     if candidates.count > 1

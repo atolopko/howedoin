@@ -31,13 +31,13 @@ module PostedTransactions
                                                                      'amount',
                                                                      'memo') }).
           to match_array([[Date.new(2014, 3, 1),
-                           BigDecimal("94.72"),
+                           BigDecimal("-94.72"),
                            "TRADER JOE'S #999  QPS SPRINGFIELD   MA"],
                           [Date.new(2014, 3, 2),
-                           BigDecimal("21.31"),
+                           BigDecimal("-21.31"),
                            "Amazon.com             AMZN.COM/BILL WA"],
                           [Date.new(2014, 3, 3),
-                           BigDecimal("-1000.01"),
+                           BigDecimal("1000.01"),
                            "ELECTRONIC PAYMENT-THANK YOU"]])
       end
     end

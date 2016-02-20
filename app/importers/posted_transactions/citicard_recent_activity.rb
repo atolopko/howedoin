@@ -32,7 +32,7 @@ module PostedTransactions
       pt.sale_date = Date.strptime r['Date'], "%m/%d/%Y"
       amount = r['Debit'].present? ? "-#{r['Debit']}" : r['Credit']
       pt.amount = BigDecimal.new(amount.gsub(/[,]/, '')) if amount
-      pt.memo = r['Description']
+      pt.memo = r['Description'].gsub(" \n", '')
       pt
     end
 

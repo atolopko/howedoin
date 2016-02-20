@@ -7,7 +7,8 @@ module PostedTransactions
       <<-CSV
 "Status","Date","Description","Debit","Credit"
 "Cleared","03/01/2014","TRADER JOE'S #999  QPS SPRINGFIELD   MA","94.72",""
-"Cleared","03/02/2014","Amazon.com             AMZN.COM/BILL WA","21.31",""
+"Cleared","03/02/2014","Amazon.com             AMZN.COM/BILL WA 
+","21.31",""
 "Cleared","03/03/2014","ELECTRONIC PAYMENT-THANK YOU","","1,000.01"
 "Pending","03/04/2015","DENNY'S","40.01",""
       CSV

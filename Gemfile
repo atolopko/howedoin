@@ -39,6 +39,8 @@ gem "money", "~> 5.1.1"
 
 gem 'trollop'
 
+gem 'awesome_print'
+
 group :development do
   # for Guard automated testing (4 gems)
   #gem "guard-rspec", "~> 2.5.2"
@@ -50,7 +52,6 @@ group :development do
 end
 
 group :test, :development do
-  gem 'awesome_print'
   gem "pry-byebug"
   gem "test-unit"
   gem "rspec-rails"

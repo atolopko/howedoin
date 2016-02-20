@@ -40,6 +40,9 @@ module Transactions
         Rails.logger.info("posted_txn #{posted_txn.id} not imported")
         :not_imported
       end
+    rescue MultipleMatchingTxnsError => e
+      Rails.logger.info("posted_txn #{posted_txn.id} not imported: #{e}")
+      :not_imported
     end
 
     def find_factory

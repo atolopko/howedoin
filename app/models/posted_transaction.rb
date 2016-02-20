@@ -12,9 +12,6 @@ class PostedTransaction < ActiveRecord::Base
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true
 
-  class MultipleMatchingTxns < StandardError
-  end
-
   # Attempts to find a matching Txn, comparing sale_date, account, and amount
   def find_matching_txn
     candidates = Txn.
@@ -25,7 +22,7 @@ class PostedTransaction < ActiveRecord::Base
       having('sum(amount) = ?', amount).
       all
     if candidates.size > 1
-      raise MultipleMatchingTxns, candidates.map(&:id).join(", ") 
+      raise MultipleMatchingTxnsError, candidates.map(&:id).join(", ") 
     else
       candidates.first
     end

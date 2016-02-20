@@ -11,19 +11,46 @@ module Transactions
     
     shared_examples "posted transaction processed" do
       it "creates a new Txn" do
+        importer.import
         expect(importer.txn).to be_present
       end
 
       it "persists the new Txn" do
+        importer.import
         expect(importer.txn).to be_persisted
       end
 
       it "links new Txn to PostedTransaction" do
+        importer.import
         expect(pt.reload.txn).to eq importer.txn
       end
 
       it "records the transaction import factory used" do
+        importer.import
         expect(pt.reload.txn_importer_factory).to eq txn_importer_factory
+      end
+
+      it "returns :created" do
+        expect(importer.import).to eq :created
+      end
+    end
+
+    shared_examples "posted transaction not processed" do |return_val|
+      it "does not create a new Txn" do
+        importer.import
+        expect(importer.txn).not_to be_present
+      end
+      
+      it "does not create a new Txn" do
+        expect { importer.import }.not_to change { Txn.count }
+      end
+
+      it "does not change link" do
+        expect { importer.import }.not_to change { pt.txn }
+      end
+
+      it "returns #{return_val}" do
+        expect(importer.import).to eq return_val
       end
     end
 
@@ -32,10 +59,6 @@ module Transactions
     end
 
     describe "PostedTransaction not yet imported" do
-      before do
-        importer.import
-      end
-
       it_behaves_like "posted transaction processed"
     end
 
@@ -52,35 +75,38 @@ module Transactions
       it "does not create a new Txn" do
         expect { importer.import }.not_to change { Txn.count }
       end
+
+      it "returns :linked_to_existing" do
+        expect(importer.import).to eq :linked_to_existing
+      end
     end
 
-    shared_examples "posted transaction not processed" do
-      it "does not create a new Txn" do
-        importer.import
-        expect(importer.txn).not_to be_present
-      end
+    describe "multiple matching, unlinked Txns exist" do
+      let!(:txn) { create(:txn,
+                          from_account: pt.account,
+                          amount: pt.amount,
+                          date: pt.sale_date) }
+      let!(:dup_txn) { create(:txn,
+                              from_account: pt.account,
+                              amount: pt.amount,
+                              date: pt.sale_date) }
       
-      it "does not create a new Txn" do
-        expect { importer.import }.not_to change { Txn.count }
-      end
-
-      it "does not change link" do
-        expect { importer.import }.not_to change { pt.txn }
-      end
+      it_behaves_like "posted transaction not processed", :not_imported
     end
 
     describe "PostedTransaction is already linked to a Txn" do
       let!(:pt) { create(:posted_transaction,
                          txn: create(:txn)) }
 
-      it_behaves_like "posted transaction not processed"
+      it_behaves_like "posted transaction not processed", :previously_imported
     end
 
     describe "no matching factory due to memo mismatch" do
       let!(:txn_importer_factory) { create(:txn_importer_factory,
                                            from_account: pt.account,
                                            memo_regexp: 'more_specific_memo') }
-      it_behaves_like "posted transaction not processed"
+
+      it_behaves_like "posted transaction not processed", :not_imported
     end
 
     describe "amount range specified" do
@@ -90,16 +116,12 @@ module Transactions
                                            from_account: pt.account,
                                            memo_regexp: 'memo') }
 
-      before do
-        importer.import
-      end
-
       describe "amount out of range" do
         let(:pt) { create(:posted_transaction,
                           memo: "memo",
                           amount: BigDecimal.new('4.0')) }
         
-        it_behaves_like "posted transaction not processed"
+        it_behaves_like "posted transaction not processed", :not_imported
       end
 
       describe "amount in range" do
@@ -118,17 +140,13 @@ module Transactions
                                            from_account: pt.account,
                                            memo_regexp: 'memo') }
 
-      before do
-        importer.import
-      end
-
       ['2015-12-31', '2016-01-03'].each do |date|
         describe "post date out of range" do
           let(:pt) { create(:posted_transaction,
                             memo: "memo",
                             post_date: Date.parse(date)) }
           
-          it_behaves_like "posted transaction not processed"
+          it_behaves_like "posted transaction not processed", :not_imported
         end
 
         describe "sale date out of range" do
@@ -136,7 +154,7 @@ module Transactions
                             memo: "memo",
                             sale_date: Date.parse(date)) }
           
-          it_behaves_like "posted transaction not processed"
+          it_behaves_like "posted transaction not processed", :not_imported
         end
       end
 
@@ -167,10 +185,10 @@ module Transactions
                memo_regexp: 'emo')
       end
 
-      it_behaves_like "posted transaction not processed"
+      it_behaves_like "posted transaction not processed", :not_imported
     end
 
-    describe "reusing PostedTransaction object that has already created a txn" do
+    describe "reusing Importer object that has already created a txn" do
       before do
         importer.import
       end
@@ -182,7 +200,10 @@ module Transactions
       it "does not change link" do
         expect { importer.import }.not_to change { pt.txn }
       end
-      
+
+      it "returns :redundant_call" do
+        expect(importer.import).to eq :redundant_call
+      end
     end
 
     describe "created Txn" do

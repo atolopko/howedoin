@@ -11,18 +11,26 @@ class PostedTransaction < ActiveRecord::Base
   validates :txn_id, uniqueness: true, allow_nil: true
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true
+  validates :sale_date, presence: true, unless: :post_date?
+  validates :post_date, presence: true, unless: :sale_date?
 
   # Attempts to find a matching Txn, comparing sale_date, account, and amount
   def find_matching_txn
     candidates = Txn.
       where('NOT EXISTS (select 1 from posted_transactions pt where pt.txn_id = transaction.trans_id)').
-      where(date: sale_date).joins(:entries).
+      joins(:entries).
       where(entry: { acct_id: account.id }).
       group('transaction.trans_id').
-      having('sum(amount) = ?', amount).
-      all
-    if candidates.size > 1
-      raise MultipleMatchingTxnsError, candidates.map(&:id).join(", ") 
+      having('sum(amount) = ?', amount)
+    candidates =
+      if sale_date
+        candidates.where(date: sale_date)
+      else
+        candidates.where("date >= date ? - interval '3 days'", post_date)
+      end
+    candidates = candidates.all
+    if candidates.count > 1
+      raise MultipleMatchingTxnsError, candidates.map(&:id).sort.join(", ") 
     else
       candidates.first
     end

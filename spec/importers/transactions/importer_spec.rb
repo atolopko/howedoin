@@ -91,7 +91,7 @@ module Transactions
                               amount: pt.amount,
                               date: pt.sale_date) }
       
-      it_behaves_like "posted transaction not processed", :not_imported
+      it_behaves_like "posted transaction not processed", :matches_multiple_existing
     end
 
     describe "PostedTransaction is already linked to a Txn" do

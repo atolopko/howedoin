@@ -8,7 +8,7 @@ class PostedTransaction < ActiveRecord::Base
 
   validates :account, presence: true
   validates :statement, presence: true
-  validates :txn_id, uniqueness: true, allow_nil: true
+  validates :txn_id, uniqueness: true, scope: :account_id, allow_nil: true
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true
   validates :sale_date, presence: true, unless: :post_date?

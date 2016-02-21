@@ -60,6 +60,30 @@ describe PostedTransaction do
       expect(posted_txn.find_matching_txn).to be_nil
     end
 
+    it "returns nil if the only matching txn is already linked to another posted transaction" do
+      txn = create_matching_txn
+      other_posted_txn = FactoryGirl.create(:posted_transaction,
+                                            account: account,
+                                            amount: -5.11,
+                                            sale_date: Date.new(2014, 1, 1),
+                                            txn: txn)
+      expect(posted_txn.find_matching_txn).to be_nil
+    end
+
+    # This allows "symmetric" posted transactions to be associated
+    # with the same txn (e.g. transfer from one asset account to
+    # another)
+    it "returns a matching txn if the only matching txn is already linked to another posted transaction, " \
+       "but the posted transaction is for another account" do
+      txn = create_matching_txn
+      other_posted_txn = FactoryGirl.create(:posted_transaction,
+                                            account: FactoryGirl.create(:account, :asset),
+                                            amount: 5.11,
+                                            sale_date: Date.new(2014, 1, 1),
+                                            txn: txn)
+      expect(posted_txn.find_matching_txn).to eq txn
+    end
+
     describe "sale date present" do
       it "returns a matching txn, if one exists" do
         matching_txn = create_matching_txn

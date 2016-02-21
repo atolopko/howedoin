@@ -55,6 +55,9 @@ module Transactions
         where("max_date is null or ? < max_date", posted_txn.post_date || posted_txn.sale_date).
         where("? ~* memo_regexp", posted_txn.memo).
         limit(2)
+      if applicable_factories.count > 1
+        Rails.logger.warn("found multiple factories: #{applicable_factories.map(&:id).join(',')}")
+      end
       if applicable_factories.count == 1
         factory = applicable_factories.first
         if @factory.nil? || @factory == factory

@@ -61,6 +61,10 @@ class TxnBuilder
   alias_method :spending, :costing
 
 
+  def resolve_model(match_value, type, attr = :name)
+    self.class.resolve_model(match_value, type, attr)
+  end
+
   def self.resolve_model(match_value, type, attr = :name)
     return nil if match_value.blank?
     return match_value if match_value.kind_of? type
@@ -82,7 +86,8 @@ class TxnBuilder
 
   def add_balancing_entry
     total = @t.entries.reduce(0) { |t,e| t += e.amount }
-    @t.entries.build(account: @from, num: @num, user: User.payment_default, amount: -total)
+    user = User.payment_default || @user
+    @t.entries.build(account: @from, num: @num, user: user, amount: -total)
   end
 
   def set_defaults

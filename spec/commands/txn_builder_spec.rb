@@ -99,6 +99,19 @@ describe TxnBuilder do
       expect(t.entries.last.user).to eq u2
     end
 
+    it "uses last entry user for balancing entry, if no default payment user configured" do
+      u.update_attributes!(payment_default: false)
+      t = TxnBuilder.new.
+        on('2014-11-02').
+        by(u).
+        using(a1).
+        paying(p).
+        buying(a2).
+        costing('11.01').
+        create
+      expect(t.entries.last.user).to eq u
+    end
+
     it "uses current date" do
       Timecop.freeze do
         t = TxnBuilder.new.

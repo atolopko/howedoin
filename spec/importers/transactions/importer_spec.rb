@@ -325,6 +325,15 @@ module Transactions
           expect(importer.txn.date).to eq pt.post_date
         end
       end
+
+      describe "entry creation" do
+        it "sets statement of 'from' entry" do
+          expect(importer.txn.entries.first.statement).to eq pt.statement
+        end
+
+        # TODO: verify other entry attributes set correctly
+      end
+      
     end
     
   end

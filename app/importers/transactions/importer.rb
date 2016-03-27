@@ -80,7 +80,8 @@ module Transactions
                                 user: factory.user,
                                 amount: from_amount,
                                 memo: posted_txn.memo,
-                                num: posted_txn.reference_identifier)
+                                num: posted_txn.reference_identifier,
+                                statement: posted_txn.statement)
       @txn.entries << Entry.new(account: factory.to_account,
                                 user: factory.user,
                                 amount: to_amount)

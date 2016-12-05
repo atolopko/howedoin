@@ -31,7 +31,7 @@ begin
       STDERR.puts "Imported #{importer.imported.size} transactions"
       raise ActiveRecord::Rollback
     end
-    puts("Imported #{importer.imported.size} transactions")
+    puts("Imported #{importer.imported.size} transactions into statement #{importer.statement.id}")
   end
 rescue StandardError => e
   raise e if options.debug

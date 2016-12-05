@@ -28,7 +28,7 @@ end
 
 if options.run
   puts "Running transaction importer..."
-  report = Transactions::Importer.import_all(factory)
+  report = Transactions::Importer.import_all(factory: factory)
   report = report.delete_if { |k,v| k == :not_imported }
   ap report
 end

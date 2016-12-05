@@ -1,9 +1,21 @@
 #!/usr/bin/env rails runner
 
 options = Trollop.options do
+  opt :statement_id, "Statement ID of single statement to import", required: false, type: :int
 end
 
-puts "Running transaction importer..."
-report = Transactions::Importer.import_all
-report = report.delete_if { |k,v| k == :not_imported }
-ap report
+def print_report(report)
+  report = report.delete_if { |k,v| k == :not_imported }
+  report = report.map { |k,v| [k, v.size] }.to_h
+  ap report
+end
+
+if options.statement_id
+   puts "Running transaction importer for statement #{options.statement_id}..."
+   statement = Statement.find(options.statement_id)
+   abort "statement #{options.statement_id} not found" unless statement
+   print_report(Transactions::Importer.import_all(statement: statement))
+else
+   puts "Running transaction importer..."
+   print_report(Transactions::Importer.import_all)
+end

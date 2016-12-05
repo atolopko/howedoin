@@ -55,7 +55,17 @@ module Transactions
     end
 
     describe ".import_all" do
-      pending
+      it "processes all unimported posted transactions" do
+        skip
+      end
+
+      it "processes only posted transactions that match the specified factory, if factory specified" do
+        skip
+      end
+
+      it "processes only single statement, if statement specified" do
+        skip
+      end
     end
 
     describe "PostedTransaction not yet imported" do

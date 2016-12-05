@@ -1,10 +1,12 @@
 module Transactions
   class Importer
 
-    def self.import_all(factory = nil)
+    def self.import_all(factory: nil, statement: nil)
       result = Hash.new { |h,k| h[k] = [] }
       PostedTransaction.transaction do
-        unimported_posted_txns.each do |posted_txn|
+        unimported = unimported_posted_txns(statement)
+        Rails.logger.info("found #{unimported.count} unimported posted transaction(s)")
+        unimported.each do |posted_txn|
           status = Importer.new(posted_txn, factory).import
           result[status] << posted_txn
         end
@@ -12,8 +14,10 @@ module Transactions
       result
     end
 
-    def self.unimported_posted_txns
-      PostedTransaction.where(txn_id: nil)
+    def self.unimported_posted_txns(statement = nil)
+      unimported = PostedTransaction.where(txn_id: nil)
+      unimported = unimported.where(stmt_id: statement.id) if statement
+      unimported
     end
 
     attr_accessor :posted_txn, :txn

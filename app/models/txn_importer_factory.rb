@@ -14,7 +14,9 @@ class TxnImporterFactory < ActiveRecord::Base
   def self.smart_create!(attrs)
     to_account = TxnBuilder.resolve_model(attrs[:to_account], Account)
     from_account = TxnBuilder.resolve_model(attrs[:from_account], Account)
-    payee = TxnBuilder.resolve_model(attrs[:payee], Payee)
+    payee = TxnBuilder.resolve_model(attrs[:payee], Payee) do
+      Payee.create!(name: attrs[:payee])
+    end
     user = TxnBuilder.resolve_model(attrs[:user], User, :nickname)
     TxnImporterFactory.
       create!(memo_regexp: attrs[:memo_regexp],

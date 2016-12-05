@@ -125,6 +125,18 @@ describe TxnBuilder do
       end
     end
 
+    it "creates payee if necessary" do
+      t = TxnBuilder.new.
+            on('2014-11-02').
+            by(u).
+            using(a1).
+            paying('NewPayee').
+            buying(a2).
+            costing('11.01').
+            create
+      expect(t.payee.name).to eq 'NewPayee'
+    end
+
     it "allows missing payee" do
       expect { 
         TxnBuilder.new.

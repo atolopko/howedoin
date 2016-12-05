@@ -21,7 +21,9 @@ class TxnBuilder
   end
 
   def paying(payee)
-    @t.payee = resolve_model(payee, Payee)
+    @t.payee = resolve_model(payee, Payee) do
+      Payee.create!(name: payee)
+    end
     self
   end
 
@@ -62,7 +64,11 @@ class TxnBuilder
 
 
   def resolve_model(match_value, type, attr = :name)
-    self.class.resolve_model(match_value, type, attr)
+    if block_given?
+      self.class.resolve_model(match_value, type, attr) { yield }
+    else
+      self.class.resolve_model(match_value, type, attr)
+    end
   end
 
   def self.resolve_model(match_value, type, attr = :name)
@@ -78,7 +84,11 @@ class TxnBuilder
     end
     res = type.find(match_value) if match_value.kind_of? Fixnum
     return res if res.present?
-    raise "No such #{type} where #{attr}='#{match_value}' (#{match_value.class})"
+    if block_given?
+      yield
+    else
+      raise "No such #{type} where #{attr}='#{match_value}' (#{match_value.class})"
+    end
   end
 
 

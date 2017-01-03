@@ -8,7 +8,6 @@ class PostedTransaction < ActiveRecord::Base
 
   validates :account, presence: true
   validates :statement, presence: true
-  validates :txn_id, uniqueness: { scope: :account_id }, allow_nil: true
   validates :amount, presence: true, numericality: true
   validates :reference_identifier, uniqueness: true, allow_nil: true
   validates :sale_date, presence: true, unless: :post_date?
@@ -21,14 +20,10 @@ class PostedTransaction < ActiveRecord::Base
       where('NOT EXISTS (select 1 from posted_transactions pt where pt.txn_id = transaction.trans_id and pt.account_id = ?)', account.id).
       joins(:entries).
       where(entry: { acct_id: account.id }).
+      where("date between (date :pt_date - interval '3 days') and (date :pt_date)",
+            pt_date: sale_date || post_date).
       group('transaction.trans_id').
       having('sum(amount) = ?', amount)
-    candidates =
-      if sale_date
-        candidates.where(date: sale_date)
-      else
-        candidates.where("date between (date ? - interval '3 days') and (date ?)", post_date, post_date)
-      end
     candidates = candidates.all
     if candidates.count > 1
       raise MultipleMatchingTxnsError, candidates.map(&:id).sort.join(", ") 

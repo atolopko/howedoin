@@ -1,15 +1,18 @@
 #!/usr/bin/env rails runner
 
 options = Trollop.options do
-  opt :account_id, "To Account", short: 'f', type: :string
+  opt :account_id, "To Account", short: 'a', type: :string
   opt :memo, "Statement memo (regexp)", short: 'm', type: :string
+  opt :from, "Include only posted transactions after this date, inclusive", short: 'f', type: :date
+  opt :to, "Include only posted transactions before this date, exlusive", short: 't', type: :date
 end
 
 query = PostedTransaction.where(txn_id: nil)
         
-[:memo, :account_id].each do |attr|
-  query = query.where("#{attr.to_s} ~* ?", options[attr]) if options[attr]
-end
+query = query.where("memo ~* ?", options.memo) if options.memo
+query = query.where("account_id = ?", options.account_id) if options.account_id
+query = query.where("coalesce(sale_date, post_date) >= ?", options.from) if options.from
+query = query.where("coalesce(sale_date, post_date) < ?", options.to) if options.to
 
 ap query.
     group(:account_id, :memo).

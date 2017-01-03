@@ -34,8 +34,7 @@ module Transactions
         Rails.logger.info("posted_txn #{posted_txn.id} => txn #{posted_txn.txn.id} (previously imported)")
         :previously_imported
       elsif (@txn = posted_txn.find_matching_txn)
-        link_posted_transaction_to_txn
-        link_entry_to_bank_statement
+        link_posted_transaction_to_txn(@txn)
         Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{@txn.id}")
         :linked_to_existing
       elsif @txn = build_txn
@@ -85,28 +84,30 @@ module Transactions
                                 user: factory.user,
                                 amount: from_amount,
                                 memo: posted_txn.memo,
-                                num: posted_txn.reference_identifier,
-                                statement: posted_txn.statement)
+                                num: posted_txn.reference_identifier)
       @txn.entries << Entry.new(account: factory.to_account,
                                 user: factory.user,
                                 amount: to_amount)
       posted_txn.txn_importer_factory = factory
-      link_posted_transaction_to_txn
       @txn.save!
+      link_posted_transaction_to_txn(@txn)
       return @txn
     end
 
-    def link_posted_transaction_to_txn
+    def link_posted_transaction_to_txn(txn)
       return unless txn
       return if posted_txn.txn.present?
       posted_txn.txn = txn
       posted_txn.save!
+      link_entry_to_bank_statement(txn)
     end
 
-    def link_entry_to_bank_statement
+    def link_entry_to_bank_statement(txn)
       return unless txn
-      txn.entries.where(acct_id: posted_txn.account.acct_id).
-        update_all(stmt_id: posted_txn.statement.stmt_id)
+      txn.entries.where(acct_id: posted_txn.account.acct_id).each do |entry|
+        entry.statement = posted_txn.statement
+        entry.save!
+      end
     end
   end
 end

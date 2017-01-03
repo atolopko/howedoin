@@ -344,7 +344,7 @@ module Transactions
 
       describe "entry creation" do
         it "sets statement of 'from' entry" do
-          expect(importer.txn.entries.first.statement).to eq pt.statement
+          expect(importer.txn.reload.entries.where(acct_id: pt.account.acct_id).first.statement).to eq pt.statement
         end
 
         # TODO: verify other entry attributes set correctly

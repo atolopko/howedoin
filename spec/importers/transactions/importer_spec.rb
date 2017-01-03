@@ -25,6 +25,12 @@ module Transactions
         expect(pt.reload.txn).to eq importer.txn
       end
 
+      it "links Txn entries to BankStatement" do
+        importer.import
+        expect(pt.reload.txn.entries.where(acct_id: pt.account.acct_id).pluck(:stmt_id)).
+          to eq [pt.statement.stmt_id]
+      end
+
       it "records the transaction import factory used" do
         importer.import
         expect(pt.reload.txn_importer_factory).to eq txn_importer_factory

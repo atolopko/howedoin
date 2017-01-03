@@ -34,7 +34,8 @@ module Transactions
         Rails.logger.info("posted_txn #{posted_txn.id} => txn #{posted_txn.txn.id} (previously imported)")
         :previously_imported
       elsif (@txn = posted_txn.find_matching_txn)
-        link
+        link_posted_transaction_to_txn
+        link_entry_to_bank_statement
         Rails.logger.info("posted_txn #{posted_txn.id} => existing txn #{@txn.id}")
         :linked_to_existing
       elsif @txn = build_txn
@@ -90,16 +91,22 @@ module Transactions
                                 user: factory.user,
                                 amount: to_amount)
       posted_txn.txn_importer_factory = factory
-      link
+      link_posted_transaction_to_txn
       @txn.save!
       return @txn
     end
 
-    def link
-      return unless @txn
+    def link_posted_transaction_to_txn
+      return unless txn
       return if posted_txn.txn.present?
-      posted_txn.txn = @txn
+      posted_txn.txn = txn
       posted_txn.save!
+    end
+
+    def link_entry_to_bank_statement
+      return unless txn
+      txn.entries.where(acct_id: posted_txn.account.acct_id).
+        update_all(stmt_id: posted_txn.statement.stmt_id)
     end
   end
 end

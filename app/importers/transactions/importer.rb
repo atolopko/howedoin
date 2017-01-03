@@ -20,6 +20,13 @@ module Transactions
       unimported
     end
 
+    def self.link_posted_transaction_to_txn(posted_transaction_id, txn_id)
+      PostedTransaction.transaction do
+        new(PostedTransaction.find(posted_transaction_id)).
+          link_posted_transaction_to_txn(Txn.find(txn_id))
+      end
+    end
+
     attr_accessor :posted_txn, :txn
 
     def initialize(posted_txn, factory = nil)

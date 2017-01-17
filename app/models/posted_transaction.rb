@@ -20,7 +20,7 @@ class PostedTransaction < ActiveRecord::Base
       where('NOT EXISTS (select 1 from posted_transactions pt where pt.txn_id = transaction.trans_id and pt.account_id = ?)', account.id).
       joins(:entries).
       where(entry: { acct_id: account.id }).
-      where("date between (date :pt_date - interval '3 days') and (date :pt_date)",
+      where("date between (date :pt_date - interval '7 days') and (date :pt_date)",
             pt_date: sale_date || post_date).
       group('transaction.trans_id').
       having('sum(amount) = ?', amount)

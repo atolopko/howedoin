@@ -27,6 +27,10 @@ class TxnBuilder
     self
   end
 
+  def paid_by(user)
+    @paid_by = user
+  end
+
   def using(account)
     @from = resolve_model(account, Account)
     self
@@ -96,7 +100,7 @@ class TxnBuilder
 
   def add_balancing_entry
     total = @t.entries.reduce(0) { |t,e| t += e.amount }
-    user = User.payment_default || @user
+    user = @paid_by || User.payment_default
     @t.entries.build(account: @from, num: @num, user: user, amount: -total)
   end
 

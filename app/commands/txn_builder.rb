@@ -28,7 +28,8 @@ class TxnBuilder
   end
 
   def paid_by(user)
-    @paid_by = user
+    @paid_by = resolve_model(user, User, :nickname)
+    self
   end
 
   def using(account)
@@ -58,6 +59,9 @@ class TxnBuilder
   end
 
   def build_entry
+    # if all required fields are missing, avoid creating an empty txn
+    return self if (@to || @amount || @memo).nil?
+    validate
     @t.entries.build(account: @to, user: @user, amount: @amount, memo: @memo)
     @to = @amount = @memo = nil
     self

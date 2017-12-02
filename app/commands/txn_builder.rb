@@ -2,11 +2,11 @@ class TxnBuilder
 
   def initialize
     @t = Txn.new
+    set_defaults
   end
 
   def create
     raise "Already created Txn with this TxnBuilder" if @locked
-    set_defaults
     validate
     build_entry
     add_balancing_entry
@@ -104,7 +104,7 @@ class TxnBuilder
 
   def add_balancing_entry
     total = @t.entries.reduce(0) { |t,e| t += e.amount }
-    user = @paid_by || User.payment_default
+    user = @paid_by || User.payment_default || @user
     @t.entries.build(account: @from, num: @num, user: user, amount: -total)
   end
 

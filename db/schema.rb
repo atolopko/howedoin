@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20150607113403) do
+ActiveRecord::Schema.define(:version => 20190102014126) do
 
 # Could not dump table "account" because of following StandardError
 #   Unknown type 'acct_type_enum' for column 'acct_type'
@@ -95,22 +95,21 @@ ActiveRecord::Schema.define(:version => 20150607113403) do
   add_index "payee", ["name"], :name => "payee_name", :unique => true
 
   create_table "posted_transactions", :force => true do |t|
-    t.datetime "created_at",                                          :null => false
-    t.datetime "updated_at",                                          :null => false
+    t.datetime "created_at",                                             :null => false
+    t.datetime "updated_at",                                             :null => false
     t.date     "sale_date"
     t.date     "post_date"
-    t.decimal  "amount",               :precision => 10, :scale => 2, :null => false
+    t.decimal  "amount",                  :precision => 10, :scale => 2, :null => false
     t.text     "reference_identifier"
     t.text     "type_identifier"
     t.text     "category"
     t.text     "memo"
     t.text     "person"
-    t.integer  "account_id",                                          :null => false
+    t.integer  "account_id",                                             :null => false
     t.integer  "txn_id"
-    t.integer  "stmt_id",                                             :null => false
+    t.integer  "stmt_id",                                                :null => false
+    t.integer  "txn_importer_factory_id"
   end
-
-  add_index "posted_transactions", ["txn_id"], :name => "posted_transactions_uniq_txn_id", :unique => true
 
   create_table "transaction", :primary_key => "trans_id", :force => true do |t|
     t.date     "date",                        :null => false
@@ -123,13 +122,17 @@ ActiveRecord::Schema.define(:version => 20150607113403) do
   add_index "transaction", ["payee_id"], :name => "trans_payee"
 
   create_table "txn_importer_factories", :force => true do |t|
-    t.text     "memo_regexp"
-    t.integer  "user_id",         :null => false
-    t.integer  "payee_id",        :null => false
-    t.integer  "from_account_id", :null => false
-    t.integer  "to_account_id",   :null => false
-    t.datetime "created_at",      :null => false
-    t.datetime "updated_at",      :null => false
+    t.text     "memo_regexp",                                    :null => false
+    t.integer  "user_id",                                        :null => false
+    t.integer  "payee_id"
+    t.integer  "from_account_id",                                :null => false
+    t.integer  "to_account_id",                                  :null => false
+    t.datetime "created_at",                                     :null => false
+    t.datetime "updated_at",                                     :null => false
+    t.decimal  "min_amount",      :precision => 10, :scale => 2
+    t.decimal  "max_amount",      :precision => 10, :scale => 2
+    t.date     "min_date"
+    t.date     "max_date"
   end
 
   add_index "txn_importer_factories", ["from_account_id"], :name => "index_txn_importer_factories_on_from_account_id"

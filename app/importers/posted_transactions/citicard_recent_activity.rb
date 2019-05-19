@@ -30,8 +30,11 @@ module PostedTransactions
     def populate(r)
       pt = PostedTransaction.new
       pt.sale_date = Date.strptime r['Date'], "%m/%d/%Y"
-      amount = r['Debit'].present? ? "-#{r['Debit']}" : r['Credit']
-      pt.amount = BigDecimal.new(amount.gsub(/[,]/, '')) if amount
+      amount = r['Debit'] or r['Credit']
+      if amount
+        pt.amount = BigDecimal.new(amount.gsub(/[,]/, '')).abs
+        pt.amount *= -1 if r['Debit']
+      end
       pt.memo = r['Description'].gsub(" \n", '')
       pt
     end

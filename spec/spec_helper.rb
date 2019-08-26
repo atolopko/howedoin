@@ -2,6 +2,7 @@
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
+require 'factory_girl_rails'
 # require 'pry-debugger'
 # require 'rspec/autorun' # causes Zeus to run specs twice [https://github.com/burke/zeus/issues/180]
 

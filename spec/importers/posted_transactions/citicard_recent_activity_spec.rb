@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'pry'
 
 module PostedTransactions
   describe CiticardRecentActivityParser do
@@ -10,7 +11,8 @@ module PostedTransactions
 "Cleared","03/02/2014","Amazon.com             AMZN.COM/BILL WA 
 ","21.31",""
 "Cleared","03/03/2014","ELECTRONIC PAYMENT-THANK YOU","","1,000.01"
-"Cleared","03/03/2014","STUPID CITIBANK MAKES CREDITS NEGATIVE","","-1,000.02"
+"Cleared","03/04/2014","STUPID CITIBANK MAKES CREDITS NEGATIVE","","-1,000.02"
+Cleared,03/05/2014,"UNQUOTED VALUES",,-1000.03
 "Pending","03/04/2015","DENNY'S","40.01",""
       CSV
     }
@@ -41,9 +43,12 @@ module PostedTransactions
                           [Date.new(2014, 3, 3),
                            BigDecimal("1000.01"),
                            "ELECTRONIC PAYMENT-THANK YOU"],
-                          [Date.new(2014, 3, 3),
+                          [Date.new(2014, 3, 4),
                            BigDecimal("1000.02"),
-                           "STUPID CITIBANK MAKES CREDITS NEGATIVE"]])
+                           "STUPID CITIBANK MAKES CREDITS NEGATIVE"],
+                          [Date.new(2014, 3, 5),
+                           BigDecimal("1000.03"),
+                           "UNQUOTED VALUES"]])
       end
     end
     
